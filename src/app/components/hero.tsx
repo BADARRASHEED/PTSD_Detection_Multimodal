@@ -19,7 +19,7 @@ const Hero: React.FC = () => {
         <div className="flex justify-center md:justify-start gap-4">
           <Button
             className="px-8 py-3 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition duration-200"
-            onClick={() => window.location.href = "/get-started"}
+            onClick={() => window.location.href = "/login"}
           >
             Get Started
           </Button>

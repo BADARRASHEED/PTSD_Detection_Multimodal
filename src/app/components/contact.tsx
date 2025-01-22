@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
@@ -14,7 +14,9 @@ const Contact: React.FC = () => {
     message: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
@@ -34,10 +36,15 @@ const Contact: React.FC = () => {
         <h2 className="text-3xl font-bold text-teal-600 mb-12">Get in Touch</h2>
 
         <div className="flex justify-center">
-          <form onSubmit={handleSubmit} className="w-full max-w-lg space-y-6 p-8 bg-teal-50 rounded-lg shadow-md">
+          <form
+            onSubmit={handleSubmit}
+            className="w-full max-w-lg space-y-6 p-8 bg-teal-50 rounded-lg shadow-md"
+          >
             {/* Name Field */}
             <div className="flex flex-col">
-              <Label htmlFor="name" className="text-lg text-teal-600">Name</Label>
+              <Label htmlFor="name" className="text-lg text-teal-600">
+                Name
+              </Label>
               <Input
                 type="text"
                 id="name"
@@ -51,7 +58,9 @@ const Contact: React.FC = () => {
 
             {/* Email Field */}
             <div className="flex flex-col">
-              <Label htmlFor="email" className="text-lg text-teal-600">Email</Label>
+              <Label htmlFor="email" className="text-lg text-teal-600">
+                Email
+              </Label>
               <Input
                 type="email"
                 id="email"
@@ -65,7 +74,9 @@ const Contact: React.FC = () => {
 
             {/* Message Field */}
             <div className="flex flex-col">
-              <Label htmlFor="message" className="text-lg text-teal-600">Message</Label>
+              <Label htmlFor="message" className="text-lg text-teal-600">
+                Message
+              </Label>
               <Textarea
                 id="message"
                 name="message"
@@ -78,7 +89,10 @@ const Contact: React.FC = () => {
             </div>
 
             {/* Submit Button */}
-            <Button type="submit" className="w-full px-8 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition duration-200">
+            <Button
+              type="submit"
+              className="w-full px-8 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition duration-200"
+            >
               Send Message
             </Button>
           </form>

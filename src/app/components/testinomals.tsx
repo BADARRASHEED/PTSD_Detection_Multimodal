@@ -12,7 +12,9 @@ export const Testimonials: React.FC = () => {
   return (
     <section className="w-full py-16 bg-white">
       <div className="container mx-auto text-center">
-        <h2 className="text-3xl font-bold text-teal-600 mb-12">What Our Users Say</h2>
+        <h2 className="text-3xl font-bold text-teal-600 mb-12">
+          What Our Users Say
+        </h2>
 
         <Carousel
           className="w-full max-w-3xl mx-auto"
@@ -28,13 +30,17 @@ export const Testimonials: React.FC = () => {
                   <CardContent className="flex flex-col items-center justify-center p-6 h-64">
                     <div className="flex flex-col items-center">
                       <img
-                        src="/doc1.webp" 
+                        src="/doc1.webp"
                         alt="Dr. John Doe"
                         className="w-24 h-24 rounded-full mb-4"
                       />
-                      <h3 className="text-xl font-semibold text-teal-600 mb-4">Dr. John Doe</h3>
+                      <h3 className="text-xl font-semibold text-teal-600 mb-4">
+                        Dr. John Doe
+                      </h3>
                       <p className="text-gray-700 mb-4">
-                        "This platform has helped me identify PTSD symptoms more accurately, leading to better treatment plans for my patients."
+                        "This platform has helped me identify PTSD symptoms more
+                        accurately, leading to better treatment plans for my
+                        patients."
                       </p>
                       <p className="text-gray-500">Psychiatrist</p>
                     </div>
@@ -54,9 +60,12 @@ export const Testimonials: React.FC = () => {
                         alt="Dr. Jane Smith"
                         className="w-24 h-24 rounded-full mb-4"
                       />
-                      <h3 className="text-xl font-semibold text-teal-600 mb-4">Dr. Jane Smith</h3>
+                      <h3 className="text-xl font-semibold text-teal-600 mb-4">
+                        Dr. Jane Smith
+                      </h3>
                       <p className="text-gray-700 mb-4">
-                        "The AI technology is a game-changer, providing valuable insights to improve patient outcomes."
+                        "The AI technology is a game-changer, providing valuable
+                        insights to improve patient outcomes."
                       </p>
                       <p className="text-gray-500">Clinical Psychologist</p>
                     </div>
@@ -76,9 +85,12 @@ export const Testimonials: React.FC = () => {
                         alt="Dr. Sarah Lee"
                         className="w-24 h-24 rounded-full mb-4"
                       />
-                      <h3 className="text-xl font-semibold text-teal-600 mb-4">Dr. Sarah Lee</h3>
+                      <h3 className="text-xl font-semibold text-teal-600 mb-4">
+                        Dr. Sarah Lee
+                      </h3>
                       <p className="text-gray-700 mb-4">
-                        "A reliable and secure platform for analyzing PTSD symptoms and improving patient care."
+                        "A reliable and secure platform for analyzing PTSD
+                        symptoms and improving patient care."
                       </p>
                       <p className="text-gray-500">Therapist</p>
                     </div>

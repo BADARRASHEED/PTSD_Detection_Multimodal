@@ -32,20 +32,13 @@ const Navbar: React.FC = () => {
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink
-                  href="#features"
+                  href="/request-access"
                   className="text-teal-600 hover:text-teal-800"
                 >
-                  Features
+                  Request Access
                 </NavigationMenuLink>
               </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  href="#working"
-                  className="text-teal-600 hover:text-teal-800"
-                >
-                  How It Works
-                </NavigationMenuLink>
-              </NavigationMenuItem>
+              
               <NavigationMenuItem>
                 <NavigationMenuLink
                   href="/contact"

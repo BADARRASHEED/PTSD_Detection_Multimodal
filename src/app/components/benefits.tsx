@@ -26,10 +26,10 @@ const Benefits: React.FC = () => {
         <div className="flex flex-col items-center justify-center bg-teal-600 text-white p-8 rounded-lg shadow-lg">
           <h3 className="text-2xl font-semibold mb-6">Start Detecting PTSD Today</h3>
           <a
-            href="/sign-up"
+            href="/request-access"
             className="px-8 py-3 bg-teal-700 text-white rounded-full hover:bg-teal-800 transition duration-200"
           >
-            Sign Up Now
+            Request Access
           </a>
         </div>
       </div>
