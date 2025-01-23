@@ -14,9 +14,9 @@ const Navbar: React.FC = () => {
         <nav className="flex items-center justify-between py-4">
           {/* Logo */}
           <div className="text-2xl font-bold text-teal-600">
-            <a href="/" className="hover:text-teal-800">
+            <Link href="/" className="hover:text-teal-800">
               PTSD Detection
-            </a>
+            </Link>
           </div>
 
           {/* Navigation Menu */}

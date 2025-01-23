@@ -7,6 +7,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import Image from "next/image";
 
 export const Testimonials: React.FC = () => {
   return (
@@ -29,7 +30,7 @@ export const Testimonials: React.FC = () => {
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center p-6 h-64">
                     <div className="flex flex-col items-center">
-                      <img
+                      <Image
                         src="/doc1.webp"
                         alt="Dr. John Doe"
                         className="w-24 h-24 rounded-full mb-4"
@@ -38,9 +39,9 @@ export const Testimonials: React.FC = () => {
                         Dr. John Doe
                       </h3>
                       <p className="text-gray-700 mb-4">
-                        "This platform has helped me identify PTSD symptoms more
+                        This platform has helped me identify PTSD symptoms more
                         accurately, leading to better treatment plans for my
-                        patients."
+                        patients.
                       </p>
                       <p className="text-gray-500">Psychiatrist</p>
                     </div>
@@ -55,7 +56,7 @@ export const Testimonials: React.FC = () => {
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center p-6 h-64">
                     <div className="flex flex-col items-center">
-                      <img
+                      <Image
                         src="doc2.jpg"
                         alt="Dr. Jane Smith"
                         className="w-24 h-24 rounded-full mb-4"
@@ -64,8 +65,8 @@ export const Testimonials: React.FC = () => {
                         Dr. Jane Smith
                       </h3>
                       <p className="text-gray-700 mb-4">
-                        "The AI technology is a game-changer, providing valuable
-                        insights to improve patient outcomes."
+                        The AI technology is a game-changer, providing valuable
+                        insights to improve patient outcomes.
                       </p>
                       <p className="text-gray-500">Clinical Psychologist</p>
                     </div>
@@ -80,7 +81,7 @@ export const Testimonials: React.FC = () => {
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center p-6 h-64">
                     <div className="flex flex-col items-center">
-                      <img
+                      <Image
                         src="doc3.jpg"
                         alt="Dr. Sarah Lee"
                         className="w-24 h-24 rounded-full mb-4"
@@ -89,8 +90,8 @@ export const Testimonials: React.FC = () => {
                         Dr. Sarah Lee
                       </h3>
                       <p className="text-gray-700 mb-4">
-                        "A reliable and secure platform for analyzing PTSD
-                        symptoms and improving patient care."
+                        A reliable and secure platform for analyzing PTSD
+                        symptoms and improving patient care.
                       </p>
                       <p className="text-gray-500">Therapist</p>
                     </div>

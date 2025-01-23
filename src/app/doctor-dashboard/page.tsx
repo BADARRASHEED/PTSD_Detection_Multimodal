@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function DoctorDashboard() {
   const [choice, setChoice] = useState<"upload" | "record" | null>(null);
@@ -67,7 +68,7 @@ export default function DoctorDashboard() {
       {/* Sidebar */}
       <aside className="w-64 bg-teal-700 text-white flex flex-col">
         <div className="flex flex-col items-center mb-8 p-4 border-b border-teal-800">
-          <img
+          <Image
             src="/doc2.jpg" // Replace with dynamic profile picture path
             alt="Doctor Profile"
             className="w-20 h-20 rounded-full mb-4"

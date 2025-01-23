@@ -1,5 +1,6 @@
 import React from "react";
 import { FaCheckCircle } from "react-icons/fa"; // Checkmark icon from React Icons
+import Link from "next/link"; // Custom Link component
 
 const Benefits: React.FC = () => {
   return (
@@ -25,12 +26,12 @@ const Benefits: React.FC = () => {
         {/* Call-to-Action Section */}
         <div className="flex flex-col items-center justify-center bg-teal-600 text-white p-8 rounded-lg shadow-lg">
           <h3 className="text-2xl font-semibold mb-6">Start Detecting PTSD Today</h3>
-          <a
+          <Link
             href="/request-access"
             className="px-8 py-3 bg-teal-700 text-white rounded-full hover:bg-teal-800 transition duration-200"
           >
             Request Access
-          </a>
+          </Link>
         </div>
       </div>
     </section>

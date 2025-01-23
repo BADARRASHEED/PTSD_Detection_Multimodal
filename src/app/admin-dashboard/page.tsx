@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
+import Image from "next/image";
 interface Doctor {
   id: number;
   name: string;
@@ -18,10 +18,7 @@ export default function ManageDoctors() {
   const [newDoctor, setNewDoctor] = useState<Partial<Doctor>>({});
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
   const [activeMenu, setActiveMenu] = useState("dashboard");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<keyof Doctor | null>(null);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-
+  
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     field: keyof Doctor
@@ -86,37 +83,12 @@ export default function ManageDoctors() {
     );
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleSort = (field: keyof Doctor) => {
-    const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
-    setSortField(field);
-    setSortOrder(order);
-
-    setDoctors((prevDoctors) =>
-      [...prevDoctors].sort((a, b) => {
-        if (a[field] < b[field]) return order === "asc" ? -1 : 1;
-        if (a[field] > b[field]) return order === "asc" ? 1 : -1;
-        return 0;
-      })
-    );
-  };
-
-  const filteredDoctors = doctors.filter(
-    (doctor) =>
-      doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doctor.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div className="min-h-screen flex bg-gray-100">
       {/* Sidebar */}
       <aside className="w-64 bg-teal-700 text-white flex flex-col">
         <div className="flex flex-col items-center mb-8 p-4 border-b border-teal-800">
-          <img
+          <Image
             src="/doc3.jpg" // Replace with dynamic profile picture path
             alt="Doctor Profile"
             className="w-20 h-20 rounded-full mb-4"
