@@ -31,7 +31,10 @@ export default function ContactAdmin() {
       <nav className="w-full mb-4">
         <ol className="flex space-x-2 text-sm text-gray-600">
           <li>
-            <Link href="/doctor-dashboard" className="hover:underline text-teal-600">
+            <Link
+              href="/doctor-dashboard"
+              className="hover:underline text-teal-600"
+            >
               Doctor Dashboard
             </Link>
           </li>

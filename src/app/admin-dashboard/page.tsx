@@ -131,7 +131,10 @@ export default function ManageDoctors() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 bg-gray-100">
+      <div
+        className="flex-1 bg-gray-100"
+        style={{ backgroundImage: 'url("/background.webp")' }}
+      >
         {/* Navbar */}
         <header className="bg-white shadow p-4 flex justify-between items-center">
           <h1 className="text-xl font-bold">
@@ -142,32 +145,13 @@ export default function ManageDoctors() {
         <main className="p-6">
           {/* Dashboard Content */}
           {activeMenu === "dashboard" && (
-            <section className="bg-white shadow rounded p-4">
-              <h2 className="text-lg font-semibold mb-6">
-                Welcome to the Dashboard
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <section className="bg-cover bg-center shadow rounded p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-1 gap-6">
                 {/* Total Doctors Card */}
-                <div className="p-4 bg-teal-600 text-white rounded shadow">
+                <div className="p-4 bg-teal-600 text-white rounded shadow w-full h-48 flex flex-col justify-center items-center">
                   <h3 className="text-xl font-bold">Total Doctors</h3>
                   <p className="text-2xl font-semibold mt-2">
                     {doctors.length}
-                  </p>
-                </div>
-
-                {/* Accessed Doctors Card */}
-                <div className="p-4 bg-green-600 text-white rounded shadow">
-                  <h3 className="text-xl font-bold">Accessed Doctors</h3>
-                  <p className="text-2xl font-semibold mt-2">
-                    {doctors.filter((doctor) => doctor.access).length}
-                  </p>
-                </div>
-
-                {/* Revoked Doctors Card */}
-                <div className="p-4 bg-red-600 text-white rounded shadow">
-                  <h3 className="text-xl font-bold">Revoked Doctors</h3>
-                  <p className="text-2xl font-semibold mt-2">
-                    {doctors.filter((doctor) => !doctor.access).length}
                   </p>
                 </div>
               </div>
