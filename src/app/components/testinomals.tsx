@@ -32,6 +32,8 @@ export const Testimonials: React.FC = () => {
                     <div className="flex flex-col items-center">
                       <Image
                         src="/doc1.webp"
+                        width={500} // Replace with the desired width
+                        height={300}
                         alt="Dr. John Doe"
                         className="w-24 h-24 rounded-full mb-4"
                       />
@@ -57,7 +59,9 @@ export const Testimonials: React.FC = () => {
                   <CardContent className="flex flex-col items-center justify-center p-6 h-64">
                     <div className="flex flex-col items-center">
                       <Image
-                        src="doc2.jpg"
+                        src="/doc2.jpg"
+                        width={500} // Replace with the desired width
+                        height={300}
                         alt="Dr. Jane Smith"
                         className="w-24 h-24 rounded-full mb-4"
                       />
@@ -82,7 +86,9 @@ export const Testimonials: React.FC = () => {
                   <CardContent className="flex flex-col items-center justify-center p-6 h-64">
                     <div className="flex flex-col items-center">
                       <Image
-                        src="doc3.jpg"
+                        src="/doc3.jpg"
+                        width={500} // Replace with the desired width
+                        height={300}
                         alt="Dr. Sarah Lee"
                         className="w-24 h-24 rounded-full mb-4"
                       />

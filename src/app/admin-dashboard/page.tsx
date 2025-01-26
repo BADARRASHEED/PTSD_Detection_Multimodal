@@ -18,7 +18,7 @@ export default function ManageDoctors() {
   const [newDoctor, setNewDoctor] = useState<Partial<Doctor>>({});
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
   const [activeMenu, setActiveMenu] = useState("dashboard");
-  
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     field: keyof Doctor
@@ -89,7 +89,9 @@ export default function ManageDoctors() {
       <aside className="w-64 bg-teal-700 text-white flex flex-col">
         <div className="flex flex-col items-center mb-8 p-4 border-b border-teal-800">
           <Image
-            src="/doc3.jpg" // Replace with dynamic profile picture path
+            src="/doc3.jpg"
+            width={500} // Replace with the desired width
+            height={300}
             alt="Doctor Profile"
             className="w-20 h-20 rounded-full mb-4"
           />
@@ -148,7 +150,9 @@ export default function ManageDoctors() {
                 {/* Total Doctors Card */}
                 <div className="p-4 bg-teal-600 text-white rounded shadow">
                   <h3 className="text-xl font-bold">Total Doctors</h3>
-                  <p className="text-2xl font-semibold mt-2">{doctors.length}</p>
+                  <p className="text-2xl font-semibold mt-2">
+                    {doctors.length}
+                  </p>
                 </div>
 
                 {/* Accessed Doctors Card */}
@@ -196,7 +200,9 @@ export default function ManageDoctors() {
                   <input
                     type="text"
                     placeholder="Specialty"
-                    value={editingDoctor?.specialty || newDoctor.specialty || ""}
+                    value={
+                      editingDoctor?.specialty || newDoctor.specialty || ""
+                    }
                     onChange={(e) => handleInputChange(e, "specialty")}
                     className="p-2 border rounded"
                   />

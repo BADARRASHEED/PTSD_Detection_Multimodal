@@ -2,16 +2,22 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 export default function DoctorDashboard() {
-  const [choice, setChoice] = useState<"upload" | "record" | null>(null);
+  const [choice, setChoice] = useState<"upload" | "record" | "contact" | null>(
+    null
+  );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks: Blob[] = [];
+
+  const [contactForm, setContactForm] = useState({
+    email: "",
+    message: "",
+  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -51,6 +57,13 @@ export default function DoctorDashboard() {
     setIsRecording(false);
   };
 
+  const handleContactChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setContactForm((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleSubmit = () => {
     if (choice === "upload" && selectedFile) {
       console.log("Submitting file:", selectedFile);
@@ -58,6 +71,9 @@ export default function DoctorDashboard() {
     } else if (choice === "record" && recordedBlob) {
       console.log("Submitting recorded video:", recordedBlob);
       // Add API call for recorded video submission here
+    } else if (choice === "contact") {
+      console.log("Contact form submitted:", contactForm);
+      // Add API call for contact form submission here
     } else {
       alert("Please complete the required action before submitting.");
     }
@@ -68,11 +84,6 @@ export default function DoctorDashboard() {
       {/* Sidebar */}
       <aside className="w-64 bg-teal-700 text-white flex flex-col">
         <div className="flex flex-col items-center mb-8 p-4 border-b border-teal-800">
-          <Image
-            src="/doc2.jpg" // Replace with dynamic profile picture path
-            alt="Doctor Profile"
-            className="w-20 h-20 rounded-full mb-4"
-          />
           <h2 className="text-xl font-bold">Dr. John Doe</h2>
           <p className="text-sm">Physiologist</p>
         </div>
@@ -87,9 +98,19 @@ export default function DoctorDashboard() {
               Dashboard
             </button>
           </li>
+          <li>
+            <button
+              onClick={() => setChoice("contact")}
+              className={`block w-full text-left py-2 px-4 rounded ${
+                choice === "contact" ? "bg-teal-800" : "hover:bg-teal-800"
+              }`}
+            >
+              Contact Admin
+            </button>
+          </li>
         </ul>
         <Link
-          href="/login" // Replace with logout API call
+          href="/login"
           className="mt-auto text-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-800 m-4"
         >
           Logout
@@ -98,20 +119,8 @@ export default function DoctorDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 bg-gray-100">
-        {/* Navbar */}
-        <header className="bg-white shadow p-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-teal-700">
-            Doctor Dashboard
-          </h1>
-          <div>
-            
-            <a href="#" className="text-teal-700 hover:underline">
-              Contact Admin
-            </a>
-          </div>
-        </header>
-
         <main className="p-6">
+          {/* Breadcrumbs */}
           {/* Breadcrumbs */}
           {choice !== null && (
             <div className="mb-6">
@@ -122,12 +131,18 @@ export default function DoctorDashboard() {
                       onClick={() => setChoice(null)}
                       className="text-teal-700 hover:underline"
                     >
-                      Choose Action
+                      Dashboard
                     </button>
                     <span> / </span>
                   </li>
                   <li className="text-gray-600">
-                    {choice === "upload" ? "Upload File" : "Record Video"}
+                    {choice === "upload"
+                      ? "Upload File"
+                      : choice === "record"
+                      ? "Record Video"
+                      : choice === "contact"
+                      ? "Contact Admin"
+                      : ""}
                   </li>
                 </ul>
               </nav>
@@ -158,7 +173,9 @@ export default function DoctorDashboard() {
           {/* Upload Section */}
           {choice === "upload" && (
             <div className="bg-white p-6 rounded shadow-md mb-8">
-              <h2 className="text-xl font-semibold mb-4">Upload Recorded File</h2>
+              <h2 className="text-xl font-semibold mb-4">
+                Upload Recorded File
+              </h2>
               <input
                 type="file"
                 accept="video/mp4"
@@ -219,6 +236,62 @@ export default function DoctorDashboard() {
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Contact Admin Section */}
+          {choice === "contact" && (
+            <div className="flex justify-center items-center min-h-screen bg-gray-100">
+              <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
+                <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
+                  Contact Admin
+                </h2>
+                <form
+                  onSubmit={(e) => e.preventDefault()}
+                  className="space-y-6"
+                >
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-gray-700 font-medium mb-2"
+                    >
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={contactForm.email}
+                      onChange={handleContactChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="message"
+                      className="block text-gray-700 font-medium mb-2"
+                    >
+                      Message
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      value={contactForm.message}
+                      onChange={handleContactChange}
+                      rows={4}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    ></textarea>
+                  </div>
+                  <button
+                    onClick={handleSubmit}
+                    className="w-full py-3 bg-teal-600 text-white font-medium rounded-lg shadow hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                  >
+                    Submit
+                  </button>
+                </form>
+              </div>
             </div>
           )}
         </main>
