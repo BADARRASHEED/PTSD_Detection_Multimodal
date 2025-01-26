@@ -83,7 +83,7 @@ export default function DoctorDashboard() {
       <aside className="w-64 bg-teal-700 text-white flex flex-col">
         <div className="flex flex-col items-center mb-8 p-4 border-b border-teal-800">
           <h2 className="text-xl font-bold">Dr. John Doe</h2>
-          <p className="text-sm">Physiologist</p>
+          <p className="text-sm">Psychologist</p>
         </div>
         <ul className="flex flex-col gap-2 px-4">
           <li>
