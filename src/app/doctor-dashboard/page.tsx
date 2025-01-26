@@ -4,9 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 
 export default function DoctorDashboard() {
-  const [choice, setChoice] = useState<"upload" | "record" | "contact" | null>(
-    null
-  );
+  const [choice, setChoice] = useState<"upload" | "record" | "contact" | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
@@ -119,35 +117,38 @@ export default function DoctorDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 bg-gray-100">
+        
+
         <main className="p-6">
           {/* Breadcrumbs */}
           {/* Breadcrumbs */}
-          {choice !== null && (
-            <div className="mb-6">
-              <nav className="text-sm">
-                <ul className="flex gap-2">
-                  <li>
-                    <button
-                      onClick={() => setChoice(null)}
-                      className="text-teal-700 hover:underline"
-                    >
-                      Dashboard
-                    </button>
-                    <span> / </span>
-                  </li>
-                  <li className="text-gray-600">
-                    {choice === "upload"
-                      ? "Upload File"
-                      : choice === "record"
-                      ? "Record Video"
-                      : choice === "contact"
-                      ? "Contact Admin"
-                      : ""}
-                  </li>
-                </ul>
-              </nav>
-            </div>
-          )}
+{choice !== null && (
+  <div className="mb-6">
+    <nav className="text-sm">
+      <ul className="flex gap-2">
+        <li>
+          <button
+            onClick={() => setChoice(null)}
+            className="text-teal-700 hover:underline"
+          >
+            Dashboard
+          </button>
+          <span> / </span>
+        </li>
+        <li className="text-gray-600">
+          {choice === "upload"
+            ? "Upload File"
+            : choice === "record"
+            ? "Record Video"
+            : choice === "contact"
+            ? "Contact Admin"
+            : ""}
+        </li>
+      </ul>
+    </nav>
+  </div>
+)}
+
 
           {/* Choice Section */}
           {choice === null && (
@@ -173,9 +174,7 @@ export default function DoctorDashboard() {
           {/* Upload Section */}
           {choice === "upload" && (
             <div className="bg-white p-6 rounded shadow-md mb-8">
-              <h2 className="text-xl font-semibold mb-4">
-                Upload Recorded File
-              </h2>
+              <h2 className="text-xl font-semibold mb-4">Upload Recorded File</h2>
               <input
                 type="file"
                 accept="video/mp4"
@@ -241,59 +240,60 @@ export default function DoctorDashboard() {
 
           {/* Contact Admin Section */}
           {choice === "contact" && (
-            <div className="flex justify-center items-center min-h-screen bg-gray-100">
-              <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
-                <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
-                  Contact Admin
-                </h2>
-                <form
-                  onSubmit={(e) => e.preventDefault()}
-                  className="space-y-6"
-                >
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-gray-700 font-medium mb-2"
-                    >
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={contactForm.email}
-                      onChange={handleContactChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="message"
-                      className="block text-gray-700 font-medium mb-2"
-                    >
-                      Message
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      value={contactForm.message}
-                      onChange={handleContactChange}
-                      rows={4}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                    ></textarea>
-                  </div>
-                  <button
-                    onClick={handleSubmit}
-                    className="w-full py-3 bg-teal-600 text-white font-medium rounded-lg shadow hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-                  >
-                    Submit
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
+  <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
+      <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
+        Contact Admin
+      </h2>
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="space-y-6"
+      >
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-gray-700 font-medium mb-2"
+          >
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={contactForm.email}
+            onChange={handleContactChange}
+            required
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="message"
+            className="block text-gray-700 font-medium mb-2"
+          >
+            Message
+          </label>
+          <textarea
+            id="message"
+            name="message"
+            value={contactForm.message}
+            onChange={handleContactChange}
+            rows={4}
+            required
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+          ></textarea>
+        </div>
+        <button
+          onClick={handleSubmit}
+          className="w-full py-3 bg-teal-600 text-white font-medium rounded-lg shadow hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+        >
+          Submit
+        </button>
+      </form>
+    </div>
+  </div>
+)}
+
         </main>
       </div>
     </div>

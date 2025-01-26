@@ -95,7 +95,7 @@ export default function ManageDoctors() {
             alt="Doctor Profile"
             className="w-20 h-20 rounded-full mb-4"
           />
-          <h2 className="text-xl font-bold">Shamama</h2>
+          <h2 className="text-xl font-bold">Shamama Tarif</h2>
           <p className="text-sm">Admin</p>
         </div>
         <ul className="flex flex-col gap-2 px-4">
@@ -131,10 +131,7 @@ export default function ManageDoctors() {
       </aside>
 
       {/* Main Content */}
-      <div
-        className="flex-1 bg-gray-100"
-        style={{ backgroundImage: 'url("/background.webp")' }}
-      >
+      <div className="flex-1 bg-gray-100">
         {/* Navbar */}
         <header className="bg-white shadow p-4 flex justify-between items-center">
           <h1 className="text-xl font-bold">
@@ -149,10 +146,10 @@ export default function ManageDoctors() {
               <div className="grid grid-cols-1 sm:grid-cols-1 gap-6">
                 {/* Total Doctors Card */}
                 <div className="p-4 bg-teal-600 text-white rounded shadow w-full h-48 flex flex-col justify-center items-center">
-                  <h3 className="text-xl font-bold">Total Doctors</h3>
-                  <p className="text-2xl font-semibold mt-2">
+                  <p className="text-4xl font-semibold mt-2">
                     {doctors.length}
                   </p>
+                  <h3 className="text-xl font-bold">Total Doctors</h3>
                 </div>
               </div>
             </section>
