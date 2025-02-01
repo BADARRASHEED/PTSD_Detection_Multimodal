@@ -34,7 +34,7 @@ const Hero: React.FC = () => {
 
       {/* Right Side: Image */}
       <div className="hidden md:block w-1/2 h-full bg-cover bg-center" style={{
-        backgroundImage: "url('/ptsd.png')" // Replace with your desired image URL
+        backgroundImage: "url('/ptsd.png')", height: "80%", marginTop: "5%",marginBottom: "5%"
       }}>
       </div>
     </section>
