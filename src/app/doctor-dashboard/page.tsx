@@ -1,7 +1,6 @@
 "use client"; // Marking this file as a client-side component
 
-import { useState, useRef } from "react";
-import Link from "next/link";
+import { useState, useRef, useEffect } from "react";
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 const MAX_VIDEO_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
@@ -14,13 +13,7 @@ export default function DoctorDashboard() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks: Blob[] = [];
-  const [recordingStartTime, setRecordingStartTime] = useState<number | null>(
-    null
-  );
   const [showLogoutModal, setShowLogoutModal] = useState(false); // State for logout modal
-  const [actionMessage, setActionMessage] = useState(
-    "Are you sure you want to logout?"
-  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -28,6 +21,11 @@ export default function DoctorDashboard() {
       // Check if file exceeds max size
       if (file.size > MAX_FILE_SIZE) {
         alert("File size exceeds the 100MB limit.");
+        return;
+      }
+      // Check if file type is valid
+      if (!file.type.startsWith("video/")) {
+        alert("Invalid file type. Please upload a valid video file.");
         return;
       }
       setSelectedFile(file);
@@ -60,7 +58,6 @@ export default function DoctorDashboard() {
       };
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
-      setRecordingStartTime(Date.now()); // Track the start time of the recording
       setIsRecording(true);
 
       // Stop recording after 10 minutes
@@ -76,16 +73,16 @@ export default function DoctorDashboard() {
     }
   };
 
-  const handleStopRecording = () => {
-    mediaRecorderRef.current?.stop();
-    setIsRecording(false);
-  };
+  const handleStopRecording = () => stopRecording();
 
-  const handleCancelRecording = () => {
-    // Stop the media recorder and reset state
+  const handleCancelRecording = () => stopRecording(true);
+
+  const stopRecording = (reset: boolean = false) => {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
-    setRecordedBlob(null);
+    if (reset) {
+      setRecordedBlob(null);
+    }
     if (videoRef.current?.srcObject instanceof MediaStream) {
       const tracks = videoRef.current.srcObject.getTracks();
       tracks.forEach((track) => track.stop());
@@ -116,6 +113,13 @@ export default function DoctorDashboard() {
     setShowLogoutModal(false);
   };
 
+  useEffect(() => {
+    // Cleanup media recorder and stream when the component unmounts
+    return () => {
+      stopRecording();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen flex bg-gray-100">
       {/* Sidebar */}
@@ -137,7 +141,7 @@ export default function DoctorDashboard() {
           </li>
         </ul>
         <button
-          onClick={handleOpenLogoutModal} // Trigger logout confirmation modal
+          onClick={handleOpenLogoutModal}
           className="mt-auto text-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-800 m-4"
         >
           Logout
@@ -197,12 +201,10 @@ export default function DoctorDashboard() {
           {/* Upload Section */}
           {choice === "upload" && (
             <div className="bg-white p-6 rounded shadow-md mb-8">
-              <h2 className="text-xl font-semibold mb-4">
-                Upload Recorded File
-              </h2>
+              <h2 className="text-xl font-semibold mb-4">Upload Recorded File</h2>
               <input
                 type="file"
-                accept="video/mp4, vedio/mp3"
+                accept="video/mp4, video/mp3"
                 onChange={handleFileChange}
                 className="mb-4"
               />
@@ -277,7 +279,7 @@ export default function DoctorDashboard() {
       {showLogoutModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded shadow-md">
-            <h2 className="text-lg font-semibold mb-4">{actionMessage}</h2>
+            <h2 className="text-lg font-semibold mb-4">Are you sure you want to logout?</h2>
             <div className="flex gap-4">
               <button
                 onClick={() => handleCloseLogoutModal(true)}

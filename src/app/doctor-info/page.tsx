@@ -37,7 +37,7 @@ export default function DoctorInfo() {
       setDoctor(dummyDoctor);
       setLoading(false);
     }, 1000); // 1 second delay to simulate loading
-  }, []);
+  }, [dummyDoctor]);
 
   const handleClose = () => {
     router.push("/admin-dashboard"); // Navigate to admin-dashboard on close
