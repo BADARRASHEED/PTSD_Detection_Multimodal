@@ -3,26 +3,40 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+const MAX_VIDEO_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
+
 export default function DoctorDashboard() {
-  const [choice, setChoice] = useState<"upload" | "record" | "contact" | null>(
-    null
-  );
+  const [choice, setChoice] = useState<"upload" | "record" | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks: Blob[] = [];
-
-  const [contactForm, setContactForm] = useState({
-    email: "",
-    message: "",
-  });
+  const [recordingStartTime, setRecordingStartTime] = useState<number | null>(
+    null
+  );
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // State for logout modal
+  const [actionMessage, setActionMessage] = useState(
+    "Are you sure you want to logout?"
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      // Check if file exceeds max size
+      if (file.size > MAX_FILE_SIZE) {
+        alert("File size exceeds the 100MB limit.");
+        return;
+      }
+      setSelectedFile(file);
     }
+  };
+
+  const handleLogout = () => {
+    // Redirect to login page
+    window.location.href = "/login";
   };
 
   const handleStartRecording = async () => {
@@ -46,7 +60,17 @@ export default function DoctorDashboard() {
       };
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
+      setRecordingStartTime(Date.now()); // Track the start time of the recording
       setIsRecording(true);
+
+      // Stop recording after 10 minutes
+      setTimeout(() => {
+        if (mediaRecorderRef.current && isRecording) {
+          mediaRecorderRef.current.stop();
+          setIsRecording(false);
+          alert("Video recording time exceeded the 10 minutes limit.");
+        }
+      }, MAX_VIDEO_DURATION);
     } catch (error) {
       console.error("Error starting video recording:", error);
     }
@@ -57,11 +81,16 @@ export default function DoctorDashboard() {
     setIsRecording(false);
   };
 
-  const handleContactChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setContactForm((prev) => ({ ...prev, [name]: value }));
+  const handleCancelRecording = () => {
+    // Stop the media recorder and reset state
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+    setRecordedBlob(null);
+    if (videoRef.current?.srcObject instanceof MediaStream) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
   };
 
   const handleSubmit = () => {
@@ -71,12 +100,20 @@ export default function DoctorDashboard() {
     } else if (choice === "record" && recordedBlob) {
       console.log("Submitting recorded video:", recordedBlob);
       // Add API call for recorded video submission here
-    } else if (choice === "contact") {
-      console.log("Contact form submitted:", contactForm);
-      // Add API call for contact form submission here
     } else {
       alert("Please complete the required action before submitting.");
     }
+  };
+
+  const handleOpenLogoutModal = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleCloseLogoutModal = (confirm: boolean) => {
+    if (confirm) {
+      handleLogout();
+    }
+    setShowLogoutModal(false);
   };
 
   return (
@@ -98,23 +135,13 @@ export default function DoctorDashboard() {
               Dashboard
             </button>
           </li>
-          <li>
-            <button
-              onClick={() => setChoice("contact")}
-              className={`block w-full text-left py-2 px-4 rounded ${
-                choice === "contact" ? "bg-teal-800" : "hover:bg-teal-800"
-              }`}
-            >
-              Contact Admin
-            </button>
-          </li>
         </ul>
-        <Link
-          href="/login"
+        <button
+          onClick={handleOpenLogoutModal} // Trigger logout confirmation modal
           className="mt-auto text-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-800 m-4"
         >
           Logout
-        </Link>
+        </button>
       </aside>
 
       {/* Main Content */}
@@ -139,8 +166,6 @@ export default function DoctorDashboard() {
                       ? "Upload File"
                       : choice === "record"
                       ? "Record Video"
-                      : choice === "contact"
-                      ? "Contact Admin"
                       : ""}
                   </li>
                 </ul>
@@ -190,7 +215,7 @@ export default function DoctorDashboard() {
                 onClick={handleSubmit}
                 className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-800"
               >
-                Submit File
+                Analyze PTSD
               </button>
             </div>
           )}
@@ -221,6 +246,14 @@ export default function DoctorDashboard() {
                     Stop Recording
                   </button>
                 )}
+                {recordedBlob && (
+                  <button
+                    onClick={handleCancelRecording}
+                    className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-800"
+                  >
+                    Cancel Recording
+                  </button>
+                )}
               </div>
               {recordedBlob && (
                 <div className="mt-4 text-center">
@@ -231,70 +264,37 @@ export default function DoctorDashboard() {
                     onClick={handleSubmit}
                     className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-800"
                   >
-                    Submit Recording
+                    Analyze PTSD
                   </button>
                 </div>
               )}
             </div>
           )}
-
-          {/* Contact Admin Section */}
-          {choice === "contact" && (
-            <div className="flex justify-center items-center min-h-screen bg-gray-100">
-              <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
-                <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
-                  Contact Admin
-                </h2>
-                <form
-                  onSubmit={(e) => e.preventDefault()}
-                  className="space-y-6"
-                >
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-gray-700 font-medium mb-2"
-                    >
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={contactForm.email}
-                      onChange={handleContactChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="message"
-                      className="block text-gray-700 font-medium mb-2"
-                    >
-                      Message
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      value={contactForm.message}
-                      onChange={handleContactChange}
-                      rows={4}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                    ></textarea>
-                  </div>
-                  <button
-                    onClick={handleSubmit}
-                    className="w-full py-3 bg-teal-600 text-white font-medium rounded-lg shadow hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-                  >
-                    Submit
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
         </main>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow-md">
+            <h2 className="text-lg font-semibold mb-4">{actionMessage}</h2>
+            <div className="flex gap-4">
+              <button
+                onClick={() => handleCloseLogoutModal(true)}
+                className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-800"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={() => handleCloseLogoutModal(false)}
+                className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

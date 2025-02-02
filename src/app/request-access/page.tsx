@@ -9,6 +9,7 @@ export default function RequestAccess() {
     name: "",
     email: "",
     specialization: "",
+    phone: "", // Added phone number
   });
   const [success, setSuccess] = useState(false);
 
@@ -79,6 +80,25 @@ export default function RequestAccess() {
                   name="email"
                   placeholder="Enter your email"
                   value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-teal-600"
+                  required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label
+                  htmlFor="phone"
+                  className="block mb-2 text-sm font-medium text-[#231F20]"
+                >
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  placeholder="Enter your phone number"
+                  value={formData.phone}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-teal-600"
                   required
