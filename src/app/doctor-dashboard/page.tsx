@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
 const MAX_VIDEO_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
 
 export default function DoctorDashboard() {
@@ -20,7 +20,7 @@ export default function DoctorDashboard() {
       const file = e.target.files[0];
       // Check if file exceeds max size
       if (file.size > MAX_FILE_SIZE) {
-        alert("File size exceeds the 100MB limit.");
+        alert("File size exceeds the 500MB limit.");
         return;
       }
       // Check if file type is valid

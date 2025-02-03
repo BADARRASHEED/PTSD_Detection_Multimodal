@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { z } from "zod"; // Import zod
 
 interface Doctor {
   id: number;
@@ -15,6 +16,16 @@ interface Doctor {
   access: boolean;
 }
 
+// Define a zod schema for doctor validation
+const doctorSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
+  specialty: z.string().min(1, "Specialty is required"),
+  username: z.string().min(1, "Username is required"),
+  phone: z.string().min(1, "Phone number is required"),
+  password: z.string().min(8, "Password must be at least 8 characters long"),
+});
+
 export default function ManageDoctors() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [newDoctor, setNewDoctor] = useState<Partial<Doctor>>({});
@@ -23,10 +34,30 @@ export default function ManageDoctors() {
   const [showModal, setShowModal] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
   const [modalAction, setModalAction] = useState<() => void>(() => () => {});
-  const [doctorToRemove, setDoctorToRemove] = useState<Doctor | null>(null); // State for the doctor to be removed
-  const [showLogoutModal, setShowLogoutModal] = useState(false); // State for logout modal
+  const [doctorToRemove, setDoctorToRemove] = useState<Doctor | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Error state for form fields
+  const [errors, setErrors] = useState<Partial<Record<keyof Doctor, string>>>(
+    {}
+  );
 
   const handleOpenModal = () => {
+    // Select the current data to validate (either newDoctor or editingDoctor)
+    const dataToValidate = editingDoctor ? editingDoctor : newDoctor;
+    const result = doctorSchema.safeParse(dataToValidate);
+    if (!result.success) {
+      // Map the validation errors to our errors state
+      const fieldErrors: Partial<Record<keyof Doctor, string>> = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as keyof Doctor;
+        fieldErrors[field] = err.message;
+      });
+      setErrors(fieldErrors);
+      return; // Prevent modal from opening if validation fails
+    }
+    // Clear any existing errors before proceeding
+    setErrors({});
     setActionMessage(
       editingDoctor
         ? "Are you sure you want to save changes to this doctor?"
@@ -46,20 +77,24 @@ export default function ManageDoctors() {
   const handleOpenLogoutModal = () => {
     setActionMessage("Are you sure you want to logout?");
     setModalAction(() => handleLogout);
-    setShowLogoutModal(true); // Open the logout confirmation modal
+    setShowLogoutModal(true);
   };
 
   const handleCloseModal = (confirmed: boolean) => {
     if (confirmed) {
-      modalAction(); // Perform the action (Save, Add, or Remove)
+      if (doctorToRemove) {
+        handleRemoveDoctor(); // Ensure doctor is removed properly
+      } else {
+        modalAction(); // Run other modal actions (like adding/editing doctors)
+      }
     }
     setShowModal(false);
-    setDoctorToRemove(null); // Reset doctor to remove after modal closes
+    setDoctorToRemove(null); // Reset doctor after modal closes
   };
 
   const handleCloseLogoutModal = (confirmed: boolean) => {
     if (confirmed) {
-      modalAction(); // Perform the logout action
+      modalAction();
     }
     setShowLogoutModal(false);
   };
@@ -76,31 +111,22 @@ export default function ManageDoctors() {
   };
 
   const handleAddDoctor = () => {
-    if (
-      newDoctor.name &&
-      newDoctor.email &&
-      newDoctor.specialty &&
-      newDoctor.username &&
-      newDoctor.password &&
-      newDoctor.phone
-    ) {
-      setDoctors([
-        ...doctors,
-        {
-          id: doctors.length + 1,
-          name: newDoctor.name!,
-          email: newDoctor.email!,
-          specialty: newDoctor.specialty!,
-          username: newDoctor.username!,
-          password: newDoctor.password!,
-          phone: newDoctor.phone!,
-          access: true,
-        },
-      ]);
-      setNewDoctor({});
-    } else {
-      alert("Please fill all fields to add a doctor.");
-    }
+    // Since the data was already validated before opening the modal,
+    // you can safely add the doctor.
+    setDoctors([
+      ...doctors,
+      {
+        id: doctors.length + 1,
+        name: newDoctor.name!,
+        email: newDoctor.email!,
+        specialty: newDoctor.specialty!,
+        username: newDoctor.username!,
+        password: newDoctor.password!,
+        phone: newDoctor.phone!,
+        access: true,
+      },
+    ]);
+    setNewDoctor({});
   };
 
   const handleEditDoctor = (doctor: Doctor) => {
@@ -118,14 +144,15 @@ export default function ManageDoctors() {
 
   const handleRemoveDoctor = () => {
     if (doctorToRemove) {
-      setDoctors(doctors.filter((doctor) => doctor.id !== doctorToRemove.id));
+      setDoctors((prevDoctors) =>
+        prevDoctors.filter((doctor) => doctor.id !== doctorToRemove.id)
+      );
+      setDoctorToRemove(null); // Reset the state after removal
     }
   };
 
   const handleLogout = () => {
-    // Handle logout action here (e.g., clear session, redirect to login, etc.)
     alert("You have logged out!");
-    // Redirect to login page
     window.location.href = "/login";
   };
 
@@ -138,8 +165,8 @@ export default function ManageDoctors() {
   };
 
   const handleCancel = () => {
-    setNewDoctor({}); // Clear the form for adding a new doctor
-    setEditingDoctor(null); // Reset the editing state
+    setNewDoctor({});
+    setEditingDoctor(null);
   };
 
   return (
@@ -182,7 +209,7 @@ export default function ManageDoctors() {
           </li>
         </ul>
         <button
-          onClick={handleOpenLogoutModal} // Trigger logout confirmation modal
+          onClick={handleOpenLogoutModal}
           className="mt-auto text-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-800 m-4"
         >
           Logout
@@ -217,62 +244,106 @@ export default function ManageDoctors() {
           {/* Manage Doctors Content */}
           {activeMenu === "manageDoctors" && (
             <>
-              {/* Add Doctor Form */}
+              {/* Add / Edit Doctor Form */}
               <section className="mb-6 bg-white shadow rounded p-4">
                 <h2 className="text-lg font-semibold mb-4">
                   {editingDoctor ? "Edit Doctor" : "Add New Doctor"}
                 </h2>
                 <div className="grid grid-cols-3 gap-4">
-                  {/* Input fields for Name, Email, etc. */}
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    value={editingDoctor?.name || newDoctor.name || ""}
-                    onChange={(e) => handleInputChange(e, "name")}
-                    className="p-2 border rounded"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={editingDoctor?.email || newDoctor.email || ""}
-                    onChange={(e) => handleInputChange(e, "email")}
-                    className="p-2 border rounded"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Specialty"
-                    value={
-                      editingDoctor?.specialty || newDoctor.specialty || ""
-                    }
-                    onChange={(e) => handleInputChange(e, "specialty")}
-                    className="p-2 border rounded"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Username"
-                    value={editingDoctor?.username || newDoctor.username || ""}
-                    onChange={(e) => handleInputChange(e, "username")}
-                    className="p-2 border rounded"
-                  />
-                  <input
-                    type="tel"
-                    placeholder="Phone Number"
-                    value={editingDoctor?.phone || newDoctor.phone || ""}
-                    onChange={(e) => handleInputChange(e, "phone")}
-                    className="p-2 border rounded"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    value={editingDoctor?.password || newDoctor.password || ""}
-                    onChange={(e) => handleInputChange(e, "password")}
-                    className="p-2 border rounded"
-                  />
-                  {newDoctor.password && newDoctor.password.length < 8 && (
-                    <p className="text-red-500 text-sm col-span-3">
-                      Password must be at least 8 characters long.
-                    </p>
-                  )}
+                  {/* Name Field */}
+                  <div className="flex flex-col">
+                    <input
+                      type="text"
+                      placeholder="Name"
+                      value={editingDoctor?.name || newDoctor.name || ""}
+                      onChange={(e) => handleInputChange(e, "name")}
+                      className="p-2 border rounded"
+                    />
+                    {errors.name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                    )}
+                  </div>
+                  {/* Email Field */}
+                  <div className="flex flex-col">
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={editingDoctor?.email || newDoctor.email || ""}
+                      onChange={(e) => handleInputChange(e, "email")}
+                      className="p-2 border rounded"
+                    />
+                    {errors.email && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+                  {/* Specialty Field */}
+                  <div className="flex flex-col">
+                    <input
+                      type="text"
+                      placeholder="Specialty"
+                      value={
+                        editingDoctor?.specialty || newDoctor.specialty || ""
+                      }
+                      onChange={(e) => handleInputChange(e, "specialty")}
+                      className="p-2 border rounded"
+                    />
+                    {errors.specialty && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.specialty}
+                      </p>
+                    )}
+                  </div>
+                  {/* Username Field */}
+                  <div className="flex flex-col">
+                    <input
+                      type="text"
+                      placeholder="Username"
+                      value={
+                        editingDoctor?.username || newDoctor.username || ""
+                      }
+                      onChange={(e) => handleInputChange(e, "username")}
+                      className="p-2 border rounded"
+                    />
+                    {errors.username && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.username}
+                      </p>
+                    )}
+                  </div>
+                  {/* Phone Number Field */}
+                  <div className="flex flex-col">
+                    <input
+                      type="tel"
+                      placeholder="Phone Number"
+                      value={editingDoctor?.phone || newDoctor.phone || ""}
+                      onChange={(e) => handleInputChange(e, "phone")}
+                      className="p-2 border rounded"
+                    />
+                    {errors.phone && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.phone}
+                      </p>
+                    )}
+                  </div>
+                  {/* Password Field */}
+                  <div className="flex flex-col">
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      value={
+                        editingDoctor?.password || newDoctor.password || ""
+                      }
+                      onChange={(e) => handleInputChange(e, "password")}
+                      className="p-2 border rounded"
+                    />
+                    {errors.password && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.password}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex gap-4 mt-4">
@@ -283,7 +354,7 @@ export default function ManageDoctors() {
                     {editingDoctor ? "Save Changes" : "Add Doctor"}
                   </button>
                   <button
-                    onClick={handleCancel} // Clear the form
+                    onClick={handleCancel}
                     className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
                   >
                     Cancel
@@ -309,7 +380,6 @@ export default function ManageDoctors() {
                       <tr key={doctor.id} className="border-t">
                         <td className="py-2 px-4">{doctor.name}</td>
                         <td className="py-2 px-4">{doctor.specialty}</td>
-
                         <td className="py-2 px-4 text-center">
                           <button
                             onClick={() => toggleAccess(doctor.id)}
