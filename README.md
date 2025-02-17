@@ -33,17 +33,25 @@ The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logi
    cd <repository_name>/backend
 
 2. **Install dependencies:**
+
+    ```bash
     pip install -r requirements.txt
 
 3. **Run the development server:**
+
+    ```bash
     uvicorn main:app --reload
 
 ## Set up the database
 
 1. **Navigate to PostgreSQL bin directory:**
+
+    ```bash
     cd "C:\Program Files\PostgreSQL\15\bin"
 
 2. **Access PostgreSQL:**
+
+    ```bash
     CREATE DATABASE doctor_db;
     \q
     psql -U postgres -d doctor_db
