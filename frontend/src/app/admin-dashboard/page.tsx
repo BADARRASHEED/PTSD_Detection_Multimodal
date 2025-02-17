@@ -1,9 +1,9 @@
-"use client"; // Marking this file as a client-side component
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { z } from "zod"; // Import zod
+import { z } from "zod";
 
 interface Doctor {
   id: number;
@@ -111,8 +111,6 @@ export default function ManageDoctors() {
   };
 
   const handleAddDoctor = () => {
-    // Since the data was already validated before opening the modal,
-    // you can safely add the doctor.
     setDoctors([
       ...doctors,
       {
@@ -147,7 +145,7 @@ export default function ManageDoctors() {
       setDoctors((prevDoctors) =>
         prevDoctors.filter((doctor) => doctor.id !== doctorToRemove.id)
       );
-      setDoctorToRemove(null); // Reset the state after removal
+      setDoctorToRemove(null);
     }
   };
 
