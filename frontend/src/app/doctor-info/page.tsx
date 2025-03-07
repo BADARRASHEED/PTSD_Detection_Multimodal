@@ -1,6 +1,6 @@
 "use client"; // Ensure the file is treated as a client-side component
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Doctor {
