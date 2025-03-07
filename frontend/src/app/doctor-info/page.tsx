@@ -1,7 +1,7 @@
 "use client"; // Ensure the file is treated as a client-side component
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // Import from next/navigation instead
+import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 interface Doctor {
   id: number;
@@ -16,90 +16,100 @@ interface Doctor {
 
 export default function DoctorInfo() {
   const [doctor, setDoctor] = useState<Doctor | null>(null);
-  const [loading, setLoading] = useState(true); // Track loading state
-  const router = useRouter(); // Use the router from next/navigation
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // Dummy doctor data
-  const dummyDoctor: Doctor = {
-    id: 1,
-    name: "Dr. John Doe",
-    email: "john.doe@example.com",
-    specialty: "Cardiology",
-    username: "johndoe123",
-    password: "password123",
-    phone: "123-456-7890",
-    access: true,
-  };
+  // Memoized dummy doctor data
+  const dummyDoctor: Doctor = useMemo(
+    () => ({
+      id: 1,
+      name: "Dr. John Doe",
+      email: "john.doe@example.com",
+      specialty: "Cardiology",
+      username: "johndoe123",
+      password: "password123",
+      phone: "123-456-7890",
+      access: true,
+    }),
+    []
+  );
 
   useEffect(() => {
-    // Simulate loading delay
     setTimeout(() => {
       setDoctor(dummyDoctor);
       setLoading(false);
-    }, 1000); // 1 second delay to simulate loading
+    }, 1000);
   }, [dummyDoctor]);
 
   const handleClose = () => {
-    router.push("/admin-dashboard"); // Navigate to admin-dashboard on close
+    router.push("/admin-dashboard");
   };
 
   return (
-    <>
-      {/* Breadcrumb */}
-      <nav className="flex items-center space-x-2 mb-4">
-        <button
-          className="text-[#008080] hover:text-teal-800"
-          onClick={() => router.push("/admin-dashboard")}
-        >
-          Admin Dashboard
-        </button>
-        <span className="text-[#008080]">/</span>
-        <span className="text-[#008080]">Doctor Information</span>
-      </nav>
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-5">
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="w-full max-w-sm p-6 bg-white rounded shadow-md"
-        >
-          <h2 className="mb-6 text-xl font-bold text-center text-[#231F20]">
-            Doctor Information
-          </h2>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-5">
+      {/* Breadcrumb Navigation */}
+      
+<div className="flex justify-center mb-6">
+  <nav className="flex items-center space-x-2">
+    <button
+      className="text-teal-600 font-medium hover:underline"
+      onClick={() => router.push("/admin-dashboard")}
+    >
+      Admin Dashboard
+    </button>
+    <span className="text-gray-400">/</span>
+    <span className="text-gray-600 font-semibold">Doctor Information</span>
+  </nav>
+</div>
 
-          {loading ? (
-            <p className="mb-4 text-center">Loading doctor information...</p>
-          ) : doctor ? (
-            <div>
-              <p>
-                <strong>Name:</strong> {doctor.name}
-              </p>
-              <p>
-                <strong>Email:</strong> {doctor.email}
-              </p>
-              <p>
-                <strong>Specialty:</strong> {doctor.specialty}
-              </p>
-              <p>
-                <strong>Phone:</strong> {doctor.phone}
-              </p>
-              <p>
-                <strong>Access:</strong> {doctor.access ? "Granted" : "Revoked"}
-              </p>
-            </div>
-          ) : (
-            <p className="mb-4 text-center">No doctor data found.</p>
-          )}
+      {/* Doctor Info Card */}
+      <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-gray-800 text-center mb-4">
+          Doctor Information
+        </h2>
 
-          <div className="card-actions justify-end mt-4">
-            {/* Close Button */}
-            <button
-              className="w-full px-4 py-2 font-medium text-white bg-[#008080] rounded-md hover:bg-teal-800"
-              onClick={handleClose}
-            >
-              Close
-            </button>
+        {loading ? (
+          <p className="text-center text-gray-600">
+            Loading doctor information...
+          </p>
+        ) : doctor ? (
+          <div className="space-y-3">
+            <p className="text-gray-700">
+              <strong className="text-gray-900">Name:</strong> {doctor.name}
+            </p>
+            <p className="text-gray-700">
+              <strong className="text-gray-900">Email:</strong> {doctor.email}
+            </p>
+            <p className="text-gray-700">
+              <strong className="text-gray-900">Specialty:</strong>{" "}
+              {doctor.specialty}
+            </p>
+            <p className="text-gray-700">
+              <strong className="text-gray-900">Phone:</strong> {doctor.phone}
+            </p>
+            <p className="text-gray-700">
+              <strong className="text-gray-900">Access:</strong>{" "}
+              {doctor.access ? (
+                <span className="text-green-600 font-semibold">Granted</span>
+              ) : (
+                <span className="text-red-600 font-semibold">Revoked</span>
+              )}
+            </p>
           </div>
-        </form>
+        ) : (
+          <p className="text-center text-gray-600">No doctor data found.</p>
+        )}
+
+        {/* Close Button */}
+        <div className="mt-6">
+          <button
+            className="w-full px-4 py-2 bg-teal-600 text-white font-medium rounded-lg shadow-md hover:bg-teal-700 transition duration-200"
+            onClick={handleClose}
+          >
+            Close
+          </button>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
