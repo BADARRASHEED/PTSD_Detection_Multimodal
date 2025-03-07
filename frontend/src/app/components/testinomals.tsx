@@ -20,7 +20,7 @@ export const Testimonials: React.FC = () => {
         <Carousel
           className="w-full max-w-3xl mx-auto"
           opts={{
-            loop: true, // Enable infinite loop
+            loop: true,
           }}
         >
           <CarouselContent>
@@ -32,7 +32,7 @@ export const Testimonials: React.FC = () => {
                     <div className="flex flex-col items-center">
                       <Image
                         src="/badar.jpg"
-                        width={500} // Replace with the desired width
+                        width={500} 
                         height={300}
                         alt="Dr. Badar Rasheed Butt"
                         className="w-24 h-24 rounded-full mb-4"
@@ -60,7 +60,7 @@ export const Testimonials: React.FC = () => {
                     <div className="flex flex-col items-center">
                       <Image
                         src="/shamama.jpg"
-                        width={500} // Replace with the desired width
+                        width={500} 
                         height={300}
                         alt="Dr. Shamama Tarif"
                         className="w-24 h-24 rounded-full mb-4"
@@ -87,7 +87,7 @@ export const Testimonials: React.FC = () => {
                     <div className="flex flex-col items-center">
                       <Image
                         src="/ayesha.jpeg"
-                        width={500} // Replace with the desired width
+                        width={500} 
                         height={300}
                         alt="Dr. Ayesha Kanwal"
                         className="w-24 h-24 rounded-full mb-4"
@@ -113,7 +113,7 @@ export const Testimonials: React.FC = () => {
                     <div className="flex flex-col items-center">
                       <Image
                         src="/moaz.jpg"
-                        width={500} // Replace with the desired width
+                        width={500} 
                         height={300}
                         alt="Dr. Moaz Aslam"
                         className="w-24 h-24 rounded-full mb-4"
