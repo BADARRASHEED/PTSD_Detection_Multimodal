@@ -20,8 +20,9 @@ export default function DoctorInfo() {
   const router = useRouter();
 
   // Memoized dummy doctor data
-  const dummyDoctor: Doctor = useMemo(
-    () => ({
+  
+  useEffect(() => {
+    const dummyDoctor: Doctor = {
       id: 1,
       name: "Dr. John Doe",
       email: "john.doe@example.com",
@@ -30,16 +31,14 @@ export default function DoctorInfo() {
       password: "password123",
       phone: "123-456-7890",
       access: true,
-    }),
-    []
-  );
-
-  useEffect(() => {
+    };
+  
     setTimeout(() => {
       setDoctor(dummyDoctor);
       setLoading(false);
     }, 1000);
-  }, [dummyDoctor]);
+  }, []);
+  
 
   const handleClose = () => {
     router.push("/admin-dashboard");
@@ -48,19 +47,21 @@ export default function DoctorInfo() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-5">
       {/* Breadcrumb Navigation */}
-      
-<div className="flex justify-center mb-6">
-  <nav className="flex items-center space-x-2">
-    <button
-      className="text-teal-600 font-medium hover:underline"
-      onClick={() => router.push("/admin-dashboard")}
-    >
-      Admin Dashboard
-    </button>
-    <span className="text-gray-400">/</span>
-    <span className="text-gray-600 font-semibold">Doctor Information</span>
-  </nav>
-</div>
+
+      <div className="flex justify-center mb-6">
+        <nav className="flex items-center space-x-2">
+          <button
+            className="text-teal-600 font-medium hover:underline"
+            onClick={() => router.push("/admin-dashboard")}
+          >
+            Admin Dashboard
+          </button>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-600 font-semibold">
+            Doctor Information
+          </span>
+        </nav>
+      </div>
 
       {/* Doctor Info Card */}
       <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-6">
