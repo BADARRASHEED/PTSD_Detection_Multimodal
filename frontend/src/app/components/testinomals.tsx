@@ -31,14 +31,14 @@ export const Testimonials: React.FC = () => {
                   <CardContent className="flex flex-col items-center justify-center p-6 h-64">
                     <div className="flex flex-col items-center">
                       <Image
-                        src="/doc1.webp"
+                        src="/badar.jpg"
                         width={500} // Replace with the desired width
                         height={300}
-                        alt="Dr. John Doe"
+                        alt="Dr. Badar Rasheed Butt"
                         className="w-24 h-24 rounded-full mb-4"
                       />
                       <h3 className="text-xl font-semibold text-teal-600 mb-4">
-                        Dr. John Doe
+                        Dr. Badar Rasheed Butt
                       </h3>
                       <p className="text-gray-700 mb-4">
                         This platform has helped me identify PTSD symptoms more
@@ -59,18 +59,18 @@ export const Testimonials: React.FC = () => {
                   <CardContent className="flex flex-col items-center justify-center p-6 h-64">
                     <div className="flex flex-col items-center">
                       <Image
-                        src="/doc2.jpg"
+                        src="/shamama.jpg"
                         width={500} // Replace with the desired width
                         height={300}
-                        alt="Dr. Jane Smith"
+                        alt="Dr. Shamama Tarif"
                         className="w-24 h-24 rounded-full mb-4"
                       />
                       <h3 className="text-xl font-semibold text-teal-600 mb-4">
-                        Dr. Jane Smith
+                        Dr. Shamama Tarif
                       </h3>
                       <p className="text-gray-700 mb-4">
-                        The AI technology is a game-changer, providing valuable
-                        insights to improve patient outcomes.
+                        Reliable, fast, and easy-to-use—bringing hope to those
+                        who need it most.
                       </p>
                       <p className="text-gray-500">Clinical Psychologist</p>
                     </div>
@@ -86,18 +86,44 @@ export const Testimonials: React.FC = () => {
                   <CardContent className="flex flex-col items-center justify-center p-6 h-64">
                     <div className="flex flex-col items-center">
                       <Image
-                        src="/doc3.jpg"
+                        src="/ayesha.jpeg"
                         width={500} // Replace with the desired width
                         height={300}
-                        alt="Dr. Sarah Lee"
+                        alt="Dr. Ayesha Kanwal"
                         className="w-24 h-24 rounded-full mb-4"
                       />
                       <h3 className="text-xl font-semibold text-teal-600 mb-4">
-                        Dr. Sarah Lee
+                        Dr. Ayesha Kanwal
                       </h3>
                       <p className="text-gray-700 mb-4">
                         A reliable and secure platform for analyzing PTSD
                         symptoms and improving patient care.
+                      </p>
+                      <p className="text-gray-500">Therapist</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CarouselItem>
+            {/* Testimonial 4 */}
+            <CarouselItem>
+              <div className="p-6">
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center p-6 h-64">
+                    <div className="flex flex-col items-center">
+                      <Image
+                        src="/moaz.jpg"
+                        width={500} // Replace with the desired width
+                        height={300}
+                        alt="Dr. Moaz Aslam"
+                        className="w-24 h-24 rounded-full mb-4"
+                      />
+                      <h3 className="text-xl font-semibold text-teal-600 mb-4">
+                        Dr. Moaz Aslam
+                      </h3>
+                      <p className="text-gray-700 mb-4">
+                        Helping doctors make informed decisions with precision
+                        and confidence.
                       </p>
                       <p className="text-gray-500">Therapist</p>
                     </div>

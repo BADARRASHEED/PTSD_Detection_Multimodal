@@ -27,8 +27,35 @@ export default function AdminLogin() {
     setFormData({ ...formData, [name]: value });
   };
 
+  const validateForm = () => {
+    const { username, password } = formData;
+
+    // Check if fields are empty
+    if (!username.trim() || !password.trim()) {
+      return "Username and password cannot be empty.";
+    }
+
+    // Username validation (at least 3 characters, only letters and numbers)
+    if (!/^[a-zA-Z0-9]{3,}$/.test(username)) {
+      return "Username must be at least 3 characters and contain only letters and numbers.";
+    }
+
+    // Password validation (minimum 5 characters)
+    if (password.length < 5) {
+      return "Password must be at least 5 characters long.";
+    }
+
+    return ""; // No errors
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
     // Check if entered credentials match the default admin credentials
     if (
@@ -77,7 +104,6 @@ export default function AdminLogin() {
               value={formData.username}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-md"
-              required
             />
           </div>
 
@@ -96,7 +122,6 @@ export default function AdminLogin() {
               value={formData.password}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-md"
-              required
             />
           </div>
 

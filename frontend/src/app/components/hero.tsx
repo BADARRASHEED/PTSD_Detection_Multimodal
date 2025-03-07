@@ -23,12 +23,7 @@ const Hero: React.FC = () => {
           >
             Get Started
           </Button>
-          <Button
-            className="px-8 py-3 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition duration-200"
-            onClick={() => window.location.href = "/learn-more"}
-          >
-            Learn More
-          </Button>
+          
         </div>
       </div>
 
