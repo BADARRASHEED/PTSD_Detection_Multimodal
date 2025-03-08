@@ -61,9 +61,14 @@ export default function DoctorLogin() {
 
       // Redirect to doctor dashboard
       router.push("/doctor-dashboard");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message); // Now TypeScript knows 'err' has a 'message' property
+      } else {
+        setError("An unexpected error occurred.");
+      }
     }
+    
   };
 
   return (
