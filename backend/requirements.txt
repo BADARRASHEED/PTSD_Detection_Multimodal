@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+asyncpg
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+requests
+Python 3.11.5
