@@ -10,17 +10,11 @@ export default function DoctorLogin() {
   const router = useRouter(); // Initialize router for navigation
 
   const [formData, setFormData] = useState({
-    username: "",
-    password: "",
+    doc_username: "",
+    doc_password: "",
   });
 
   const [error, setError] = useState("");
-
-  // Default doctor credentials
-  const defaultDoctor = {
-    username: "doctor",
-    password: "12345",
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -28,27 +22,17 @@ export default function DoctorLogin() {
   };
 
   const validateForm = () => {
-    const { username, password } = formData;
+    const { doc_username, doc_password } = formData;
 
     // Check if fields are empty
-    if (!username.trim() || !password.trim()) {
+    if (!doc_username.trim() || !doc_password.trim()) {
       return "Username and password cannot be empty.";
-    }
-
-    // Username validation (at least 3 characters, only letters and numbers)
-    if (!/^[a-zA-Z0-9]{3,}$/.test(username)) {
-      return "Username must be at least 3 characters and contain only letters and numbers.";
-    }
-
-    // Password validation (minimum 5 characters)
-    if (password.length < 5) {
-      return "Password must be at least 5 characters long.";
     }
 
     return ""; // No errors
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const validationError = validateForm();
@@ -57,18 +41,28 @@ export default function DoctorLogin() {
       return;
     }
 
-    // Check if entered credentials match the default doctor credentials
-    if (
-      formData.username === defaultDoctor.username &&
-      formData.password === defaultDoctor.password
-    ) {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/doctor/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Login failed");
+      }
+
       setError(""); // Clear any previous errors
-      console.log("Doctor Logged In:", formData);
+      console.log("Doctor Logged In:", data);
 
       // Redirect to doctor dashboard
       router.push("/doctor-dashboard");
-    } else {
-      setError("Invalid username or password. Please try again.");
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
@@ -91,17 +85,17 @@ export default function DoctorLogin() {
 
           <div className="mb-4">
             <label
-              htmlFor="username"
+              htmlFor="doc_username"
               className="block mb-2 text-sm font-medium text-[#231F20]"
             >
               Username
             </label>
             <input
               type="text"
-              id="username"
-              name="username"
+              id="doc_username"
+              name="doc_username"
               placeholder="Enter your username"
-              value={formData.username}
+              value={formData.doc_username}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-md"
             />
@@ -109,17 +103,17 @@ export default function DoctorLogin() {
 
           <div className="mb-6">
             <label
-              htmlFor="password"
+              htmlFor="doc_password"
               className="block mb-2 text-sm font-medium text-[#231F20]"
             >
               Password
             </label>
             <input
               type="password"
-              id="password"
-              name="password"
+              id="doc_password"
+              name="doc_password"
               placeholder="Enter your password"
-              value={formData.password}
+              value={formData.doc_password}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-md"
             />

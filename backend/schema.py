@@ -7,3 +7,7 @@ class DoctorCreate(BaseModel):
     doc_username: str
     doc_phone: str
     doc_password: str
+
+class DoctorLogin(BaseModel):
+    doc_username: str
+    doc_password: str

@@ -52,3 +52,12 @@ async def delete_doc_api(doc_id: int, db: Session = Depends(get_db)):
 async def get_all_doctors_api(db: Session = Depends(get_db)):
     db_docs = get_all_doctors(db)
     return db_docs
+
+@app.post("/doctor/login")
+async def login_doctor(doc: DoctorLogin, db: Session = Depends(get_db)):
+    db_doc = db.query(Doctor).filter(Doctor.doc_username == doc.doc_username, Doctor.doc_password == doc.doc_password).first()
+    
+    if not db_doc:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    
+    return {"message": "Login successful", "doctor_id": db_doc.doc_id, "username": db_doc.doc_username}
