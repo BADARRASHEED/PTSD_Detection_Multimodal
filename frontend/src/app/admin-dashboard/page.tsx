@@ -1,29 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { z } from "zod";
 
+//Doctors interface
 interface Doctor {
-  id: number;
-  name: string;
-  email: string;
-  specialty: string;
-  username: string;
-  password: string;
-  phone: string;
-  access: boolean;
+  doc_id: number;
+  doc_name: string;
+  doc_email: string;
+  doc_speciality: string;
+  doc_username: string;
+  doc_password: string;
+  doc_phone: string;
 }
 
 // Define a zod schema for doctor validation
 const doctorSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email"),
-  specialty: z.string().min(1, "Specialty is required"),
-  username: z.string().min(1, "Username is required"),
-  phone: z.string().min(1, "Phone number is required"),
-  password: z.string().min(8, "Password must be at least 8 characters long"),
+  doc_name: z.string().min(1, "Name is required"),
+  doc_email: z.string().email("Invalid email"),
+  doc_speciality: z.string().min(1, "Specialty is required"),
+  doc_username: z.string().min(1, "username is required"),
+  doc_phone: z.string().min(1, "phone number is required"),
+  doc_password: z
+    .string()
+    .min(8, "password must be at least 8 characters long"),
 });
 
 export default function ManageDoctors() {
@@ -36,16 +38,22 @@ export default function ManageDoctors() {
   const [modalAction, setModalAction] = useState<() => void>(() => () => {});
   const [doctorToRemove, setDoctorToRemove] = useState<Doctor | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // Error state for form fields
   const [errors, setErrors] = useState<Partial<Record<keyof Doctor, string>>>(
     {}
   );
 
+  {
+    /* Function to open the modal */
+  }
   const handleOpenModal = () => {
     // Select the current data to validate (either newDoctor or editingDoctor)
     const dataToValidate = editingDoctor ? editingDoctor : newDoctor;
     const result = doctorSchema.safeParse(dataToValidate);
+
     if (!result.success) {
       // Map the validation errors to our errors state
       const fieldErrors: Partial<Record<keyof Doctor, string>> = {};
@@ -53,45 +61,58 @@ export default function ManageDoctors() {
         const field = err.path[0] as keyof Doctor;
         fieldErrors[field] = err.message;
       });
+
       setErrors(fieldErrors);
       return; // Prevent modal from opening if validation fails
     }
+
     // Clear any existing errors before proceeding
     setErrors({});
+
+    // Set confirmation message
     setActionMessage(
       editingDoctor
         ? "Are you sure you want to save changes to this doctor?"
         : "Are you sure you want to add this new doctor?"
     );
-    setModalAction(() => (editingDoctor ? handleSaveEdit : handleAddDoctor));
+
+    // Set appropriate action for the modal
+    setModalAction(() =>
+      editingDoctor
+        ? () => handleSaveEdit(editingDoctor.doc_id, editingDoctor)
+        : handleAddDoctor
+    );
+
     setShowModal(true);
   };
 
-  const handleOpenRemoveModal = (doctor: Doctor) => {
-    setDoctorToRemove(doctor); // Set the doctor to remove
-    setActionMessage(`Are you sure you want to remove ${doctor.name}?`);
-    setModalAction(() => handleRemoveDoctor);
-    setShowModal(true);
+  {
+    /* Function to close the modal */
+  }
+  const handleCloseModal = (confirmed: boolean) => {
+    if (confirmed) {
+      if (doctorToRemove) {
+        handleRemoveDoctor(doctorToRemove.doc_id);
+      } else {
+        modalAction();
+      }
+    }
+    setShowModal(false);
+    setDoctorToRemove(null);
   };
 
+  {
+    /* Function to open logout modal */
+  }
   const handleOpenLogoutModal = () => {
     setActionMessage("Are you sure you want to logout?");
     setModalAction(() => handleLogout);
     setShowLogoutModal(true);
   };
 
-  const handleCloseModal = (confirmed: boolean) => {
-    if (confirmed) {
-      if (doctorToRemove) {
-        handleRemoveDoctor(); // Ensure doctor is removed properly
-      } else {
-        modalAction(); // Run other modal actions (like adding/editing doctors)
-      }
-    }
-    setShowModal(false);
-    setDoctorToRemove(null); // Reset doctor after modal closes
-  };
-
+  {
+    /* Function to close the logout modal */
+  }
   const handleCloseLogoutModal = (confirmed: boolean) => {
     if (confirmed) {
       modalAction();
@@ -99,6 +120,26 @@ export default function ManageDoctors() {
     setShowLogoutModal(false);
   };
 
+  {
+    /* Function to logout */
+  }
+  const handleLogout = () => {
+    window.location.href = "/login";
+  };
+
+  {
+    /* Function to open removal modal */
+  }
+  const handleOpenRemoveModal = (doctor: Doctor) => {
+    setDoctorToRemove(doctor);
+    setActionMessage(`Are you sure you want to remove ${doctor.doc_name}?`);
+    setModalAction(() => () => handleRemoveDoctor(doctor.doc_id)); // Pass doc_id here
+    setShowModal(true);
+  };
+
+  {
+    /* Function to handle input change */
+  }
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     field: keyof Doctor
@@ -110,58 +151,162 @@ export default function ManageDoctors() {
     }
   };
 
-  const handleAddDoctor = () => {
-    setDoctors([
-      ...doctors,
-      {
-        id: doctors.length + 1,
-        name: newDoctor.name!,
-        email: newDoctor.email!,
-        specialty: newDoctor.specialty!,
-        username: newDoctor.username!,
-        password: newDoctor.password!,
-        phone: newDoctor.phone!,
-        access: true,
-      },
-    ]);
-    setNewDoctor({});
-  };
+  {
+    /* Function to add doctor */
+  }
+  const handleAddDoctor = async () => {
+    const doctorData = {
+      doc_id: doctors.length + 1,
+      doc_name: newDoctor.doc_name!,
+      doc_speciality: newDoctor.doc_speciality!,
+      doc_email: newDoctor.doc_email!,
+      doc_username: newDoctor.doc_username!,
+      doc_phone: newDoctor.doc_phone!,
+      doc_password: newDoctor.doc_password!,
+    };
 
-  const handleEditDoctor = (doctor: Doctor) => {
-    setEditingDoctor(doctor);
-  };
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/doctor/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(doctorData),
+      });
 
-  const handleSaveEdit = () => {
-    setDoctors(
-      doctors.map((doc) =>
-        doc.id === editingDoctor!.id ? { ...editingDoctor! } : doc
-      )
-    );
-    setEditingDoctor(null);
-  };
+      if (!response.ok) throw new Error("Failed to add doctor");
 
-  const handleRemoveDoctor = () => {
-    if (doctorToRemove) {
-      setDoctors((prevDoctors) =>
-        prevDoctors.filter((doctor) => doctor.id !== doctorToRemove.id)
-      );
-      setDoctorToRemove(null);
+      const data = await response.json();
+      setDoctors([...doctors, data]); // Add newly created doctor to list
+      setNewDoctor({}); // Reset form
+      console.log("Doctor added successfully:", data);
+    } catch (error) {
+      console.error("Error adding doctor:", error);
     }
   };
 
-  const handleLogout = () => {
-    alert("You have logged out!");
-    window.location.href = "/login";
+  {
+    /* Function to edit doctor */
+  }
+  const handleEditDoctor = (doctor: Doctor) => {
+    setEditingDoctor({ ...doctor });
   };
 
-  const toggleAccess = (id: number) => {
-    setDoctors(
-      doctors.map((doctor) =>
-        doctor.id === id ? { ...doctor, access: !doctor.access } : doctor
-      )
-    );
+  {
+    /* Function to save edit */
+  }
+  const handleSaveEdit = async (
+    doc_id: number,
+    updatedDoctor: Partial<Doctor>
+  ) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/doctor/update?doc_id=${doc_id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...updatedDoctor, doc_id }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update doctor");
+      }
+
+      const data = await response.json();
+      console.log("Doctor updated successfully:", data);
+
+      // Update the local state with the new doctor data
+      setDoctors((prevDoctors) =>
+        prevDoctors.map((doctor) =>
+          doctor.doc_id === doc_id ? { ...doctor, ...updatedDoctor } : doctor
+        )
+      );
+
+      // Clear errors and close modal after update
+      setErrors({});
+      setShowModal(false);
+    } catch (error) {
+      console.error("Error updating doctor:", error);
+
+      console.log("Failed to update doctor. Please try again.");
+    }
   };
 
+  {
+    /* Function to remove doctor */
+  }
+  async function handleRemoveDoctor(doc_id?: number) {
+    if (!doc_id) {
+      console.error(
+        "Error: doc_id is undefined. doctorToRemove:",
+        doctorToRemove
+      );
+      return false;
+    }
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/doctor/delete?doc_id=${doc_id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to delete doctor");
+
+      setDoctors((prevDoctors) =>
+        prevDoctors.filter((doctor) => doctor.doc_id !== doc_id)
+      );
+      console.log("Doctor deleted successfully");
+      return true;
+    } catch (error) {
+      console.error("Error deleting doctor:", error);
+      return false;
+    }
+  }
+
+  {
+    /* Fetch doctors data */
+  }
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/doctors`);
+        if (!response.ok) throw new Error("Failed to fetch doctors");
+        const data = await response.json();
+        setDoctors(data);
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
+      }
+    };
+    fetchDoctors();
+  }, []);
+
+  {
+    /* Function to view doctor details */
+  }
+  const handleViewDetails = async (doc_id: number) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/doctors/${doc_id}`);
+      if (!response.ok) throw new Error("Failed to fetch doctor details");
+
+      const data = await response.json();
+      console.log("Fetched Doctor Details:", data);
+
+      setSelectedDoctor(data);
+      setShowDetailsModal(true);
+    } catch (error) {
+      console.error("Error fetching doctor details:", error);
+    }
+  };
+
+  {
+    /* Function to cancel the form */
+  }
   const handleCancel = () => {
     setNewDoctor({});
     setEditingDoctor(null);
@@ -253,26 +398,32 @@ export default function ManageDoctors() {
                     <input
                       type="text"
                       placeholder="Name"
-                      value={editingDoctor?.name || newDoctor.name || ""}
-                      onChange={(e) => handleInputChange(e, "name")}
+                      value={
+                        editingDoctor?.doc_name || newDoctor.doc_name || ""
+                      }
+                      onChange={(e) => handleInputChange(e, "doc_name")}
                       className="p-2 border rounded"
                     />
-                    {errors.name && (
-                      <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                    {errors.doc_name && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.doc_name}
+                      </p>
                     )}
                   </div>
-                  {/* Email Field */}
+                  {/* doc_email Field */}
                   <div className="flex flex-col">
                     <input
                       type="email"
-                      placeholder="Email"
-                      value={editingDoctor?.email || newDoctor.email || ""}
-                      onChange={(e) => handleInputChange(e, "email")}
+                      placeholder="email"
+                      value={
+                        editingDoctor?.doc_email || newDoctor.doc_email || ""
+                      }
+                      onChange={(e) => handleInputChange(e, "doc_email")}
                       className="p-2 border rounded"
                     />
-                    {errors.email && (
+                    {errors.doc_email && (
                       <p className="text-red-500 text-xs mt-1">
-                        {errors.email}
+                        {errors.doc_email}
                       </p>
                     )}
                   </div>
@@ -282,63 +433,71 @@ export default function ManageDoctors() {
                       type="text"
                       placeholder="Specialty"
                       value={
-                        editingDoctor?.specialty || newDoctor.specialty || ""
+                        editingDoctor?.doc_speciality ||
+                        newDoctor.doc_speciality ||
+                        ""
                       }
-                      onChange={(e) => handleInputChange(e, "specialty")}
+                      onChange={(e) => handleInputChange(e, "doc_speciality")}
                       className="p-2 border rounded"
                     />
-                    {errors.specialty && (
+                    {errors.doc_speciality && (
                       <p className="text-red-500 text-xs mt-1">
-                        {errors.specialty}
+                        {errors.doc_speciality}
                       </p>
                     )}
                   </div>
-                  {/* Username Field */}
+                  {/* doc_username Field */}
                   <div className="flex flex-col">
                     <input
                       type="text"
-                      placeholder="Username"
+                      placeholder="username"
                       value={
-                        editingDoctor?.username || newDoctor.username || ""
+                        editingDoctor?.doc_username ||
+                        newDoctor.doc_username ||
+                        ""
                       }
-                      onChange={(e) => handleInputChange(e, "username")}
+                      onChange={(e) => handleInputChange(e, "doc_username")}
                       className="p-2 border rounded"
                     />
-                    {errors.username && (
+                    {errors.doc_username && (
                       <p className="text-red-500 text-xs mt-1">
-                        {errors.username}
+                        {errors.doc_username}
                       </p>
                     )}
                   </div>
-                  {/* Phone Number Field */}
+                  {/* doc_phone Number Field */}
                   <div className="flex flex-col">
                     <input
                       type="tel"
-                      placeholder="Phone Number"
-                      value={editingDoctor?.phone || newDoctor.phone || ""}
-                      onChange={(e) => handleInputChange(e, "phone")}
+                      placeholder="phone Number"
+                      value={
+                        editingDoctor?.doc_phone || newDoctor.doc_phone || ""
+                      }
+                      onChange={(e) => handleInputChange(e, "doc_phone")}
                       className="p-2 border rounded"
                     />
-                    {errors.phone && (
+                    {errors.doc_phone && (
                       <p className="text-red-500 text-xs mt-1">
-                        {errors.phone}
+                        {errors.doc_phone}
                       </p>
                     )}
                   </div>
-                  {/* Password Field */}
+                  {/* doc_password Field */}
                   <div className="flex flex-col">
                     <input
                       type="password"
-                      placeholder="Password"
+                      placeholder="password"
                       value={
-                        editingDoctor?.password || newDoctor.password || ""
+                        editingDoctor?.doc_password ||
+                        newDoctor.doc_password ||
+                        ""
                       }
-                      onChange={(e) => handleInputChange(e, "password")}
+                      onChange={(e) => handleInputChange(e, "doc_password")}
                       className="p-2 border rounded"
                     />
-                    {errors.password && (
+                    {errors.doc_password && (
                       <p className="text-red-500 text-xs mt-1">
-                        {errors.password}
+                        {errors.doc_password}
                       </p>
                     )}
                   </div>
@@ -361,60 +520,57 @@ export default function ManageDoctors() {
               </section>
 
               {/* Doctors List */}
-              <section className="bg-white shadow rounded p-4">
-                <h2 className="text-lg font-semibold mb-4">Doctors List</h2>
-                <table className="min-w-full border rounded">
-                  <thead>
-                    <tr className="bg-gray-200">
-                      <th className="py-2 px-4 text-left">Name</th>
-                      <th className="py-2 px-4 text-left">Specialty</th>
-                      <th className="py-2 px-4 text-center">Access</th>
-                      <th className="py-2 px-4 text-center">Actions</th>
-                      <th className="py-2 px-4 text-center">Details</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {doctors.map((doctor) => (
-                      <tr key={doctor.id} className="border-t">
-                        <td className="py-2 px-4">{doctor.name}</td>
-                        <td className="py-2 px-4">{doctor.specialty}</td>
-                        <td className="py-2 px-4 text-center">
-                          <button
-                            onClick={() => toggleAccess(doctor.id)}
-                            className={`px-4 py-1 rounded ${
-                              doctor.access
-                                ? "bg-green-600 text-white"
-                                : "bg-red-600 text-white"
-                            }`}
-                          >
-                            {doctor.access ? "Granted" : "Revoked"}
-                          </button>
-                        </td>
-                        <td className="py-2 px-4 text-center">
-                          <button
-                            onClick={() => handleEditDoctor(doctor)}
-                            className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-800 mr-2"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleOpenRemoveModal(doctor)}
-                            className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-800"
-                          >
-                            Remove
-                          </button>
-                        </td>
-                        <td className="py-2 px-4 text-center">
-                          <Link href="/doctor-info">
-                            <button className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-800 mr-2">
+              <section className="bg-white shadow-lg rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                  Doctors List
+                </h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full border border-gray-300 rounded-lg shadow-sm">
+                    <thead>
+                      <tr className="bg-gray-100 border-b border-gray-300 text-gray-700">
+                        <th className="py-3 px-4 text-left">Name</th>
+                        <th className="py-3 px-4 text-left">Specialty</th>
+                        <th className="py-3 px-4 text-center">Actions</th>
+                        <th className="py-3 px-4 text-center">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {doctors.map((doctor, index) => (
+                        <tr
+                          key={doctor.doc_id}
+                          className={`border-b border-gray-200 ${
+                            index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                          } hover:bg-gray-100 transition`}
+                        >
+                          <td className="py-3 px-4">{doctor.doc_name}</td>
+                          <td className="py-3 px-4">{doctor.doc_speciality}</td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              onClick={() => handleEditDoctor(doctor)}
+                              className="px-3 py-1 text-white bg-blue-600 rounded hover:bg-blue-800 transition"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleOpenRemoveModal(doctor)}
+                              className="ml-2 px-3 py-1 text-white bg-red-600 rounded hover:bg-red-800 transition"
+                            >
+                              Remove
+                            </button>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              onClick={() => handleViewDetails(doctor.doc_id)}
+                              className="px-3 py-1 text-white bg-blue-600 rounded hover:bg-blue-800 transition"
+                            >
                               View Details
                             </button>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </section>
             </>
           )}
@@ -438,6 +594,53 @@ export default function ManageDoctors() {
                 className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Doctor's Detail Modal */}
+      {showDetailsModal && selectedDoctor && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md relative">
+            <h2 className="text-2xl font-semibold text-gray-800 border-b pb-3 mb-4">
+              Doctor Details
+            </h2>
+
+            <div className="space-y-3 text-gray-700">
+              <p>
+                <strong className="text-gray-900">Name:</strong>{" "}
+                {selectedDoctor.doc_name || "N/A"}
+              </p>
+              <p>
+                <strong className="text-gray-900">Email:</strong>{" "}
+                {selectedDoctor.doc_email || "N/A"}
+              </p>
+              <p>
+                <strong className="text-gray-900">Speciality:</strong>{" "}
+                {selectedDoctor.doc_speciality || "N/A"}
+              </p>
+              <p>
+                <strong className="text-gray-900">Username:</strong>{" "}
+                {selectedDoctor.doc_username || "N/A"}
+              </p>
+              <p>
+                <strong className="text-gray-900">Phone:</strong>{" "}
+                {selectedDoctor.doc_phone || "N/A"}
+              </p>
+              <p>
+                <strong className="text-gray-900">Password:</strong>{" "}
+                {selectedDoctor.doc_password || "N/A"}
+              </p>
+            </div>
+
+            <div className="flex justify-end mt-5">
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="px-4 py-2 rounded-lg text-white bg-red-500 hover:bg-red-600 transition-all"
+              >
+                Close
               </button>
             </div>
           </div>

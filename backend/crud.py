@@ -21,7 +21,7 @@ def read_doc(db: Session, doc_id: int):
     return db.query(Doctor).filter(Doctor.doc_id == doc_id).first()
 
 def update_doc(db: Session, doc_id: int, doc: DoctorCreate):
-    db_doc = db.query(Doctor).filter(Doctor.id == doc_id).first()
+    db_doc = db.query(Doctor).filter(Doctor.doc_id == doc_id).first()
     
     if not db_doc:
         raise HTTPException(status_code=404, detail="Doctor not found") 
