@@ -1,4 +1,3 @@
 # Ignore only the given folder
-.venv/
 
 node_modules/
