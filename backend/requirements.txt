@@ -6,3 +6,14 @@ asyncpg
 python-jose[cryptography]
 python-multipart
 requests
+moviepy
+opencv-python
+mtcnn
+tensorflow
+numpy
+matplotlib
+torch
+torchvision
+transformers
+Pillow
+openai-whisper
