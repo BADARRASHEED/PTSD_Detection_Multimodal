@@ -1,8 +1,7 @@
-# Ignore only the .venv folder
+# Python virtual environment
 .venv/
 
-node_modules/
-
+# Node dependencies (ignore globally)
 **/node_modules/
 
 # Python compiled files and caches
