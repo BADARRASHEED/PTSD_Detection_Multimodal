@@ -4,7 +4,9 @@
 # Node dependencies (ignore globally)
 **/node_modules/
 
-# Ignore database files
-*.db
-
+# Python compiled files and caches
 __pycache__/
+*.py[cod]
+
+# Database files
+*.db
