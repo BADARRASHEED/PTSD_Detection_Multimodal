@@ -48,7 +48,7 @@ The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logi
 
 ## Set up the Database
 
-The backend relies on a PostgreSQL database. After installing PostgreSQL, create a database named `doctor_db` (or adjust the name in `backend/database.py`).
+The backend relies on a PostgreSQL database. After installing PostgreSQL, create a database named `doctor_db` (or adjust the name in your `DATABASE_URL` variable).
 
 1. Open a terminal with access to the `psql` command. On Windows you might run:
    ```bash
@@ -71,14 +71,8 @@ The backend relies on a PostgreSQL database. After installing PostgreSQL, create
    psql -U postgres -d doctor_db
    ```
 
-5. Configure the database connection string:
-
-   **Option A –** Edit `backend/database.py`:
-   ```python
-   SQLALCHEMY_DATABASE_URL = "postgresql://postgres:<password>@localhost:5432/doctor_db"
-   ```
-
-   **Option B –** Use an environment variable:
+5. Configure the database connection string by setting the
+   `DATABASE_URL` environment variable:
    ```bash
    export DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/doctor_db"
    ```
