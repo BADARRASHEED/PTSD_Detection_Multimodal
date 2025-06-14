@@ -55,3 +55,10 @@ The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logi
     CREATE DATABASE doctor_db;
     \q
     psql -U postgres -d doctor_db
+
+Set the connection string for the backend by defining the `DATABASE_URL`
+environment variable:
+
+```bash
+export DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/doctor_db"
+```
