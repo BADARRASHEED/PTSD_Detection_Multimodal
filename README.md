@@ -9,56 +9,78 @@ The frontend is built using **Next.js** and provides the interface for doctors a
 ### Setup Frontend
 
 1. **Clone the repository:**
-
    ```bash
    git clone <repository_url>
    cd <repository_name>/frontend
+   ```
 
 2. **Install dependencies:**
-    npm install
+   ```bash
+   npm install
+   ```
 
 3. **Run the development server:**
-    npm run dev
-
+   ```bash
+   npm run dev
+   ```
 
 ## Backend
 
 The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logic of user authentication, doctor data, and integrates with the machine learning models for PTSD detection.
 
+### Setup Backend
 
 1. **Clone the repository:**
-
    ```bash
    git clone <repository_url>
    cd <repository_name>/backend
+   ```
 
 2. **Install dependencies:**
-
-    ```bash
-    pip install -r requirements.txt
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 3. **Run the development server:**
+   ```bash
+   uvicorn main:app --reload
+   ```
 
-    ```bash
-    uvicorn main:app --reload
+## Set up the Database
 
-## Set up the database
+The backend relies on a PostgreSQL database. After installing PostgreSQL, create a database named `doctor_db` (or adjust the name in `backend/database.py`).
 
-1. **Navigate to PostgreSQL bin directory:**
+1. Open a terminal with access to the `psql` command. On Windows you might run:
+   ```bash
+   cd "C:\Program Files\PostgreSQL\15\bin"
+   psql -U postgres
+   ```
 
-    ```bash
-    cd "C:\Program Files\PostgreSQL\15\bin"
+2. Create the database inside `psql`:
+   ```sql
+   CREATE DATABASE doctor_db;
+   ```
 
-2. **Access PostgreSQL:**
+3. Exit `psql` with:
+   ```bash
+   \q
+   ```
 
-    ```bash
-    CREATE DATABASE doctor_db;
-    \q
-    psql -U postgres -d doctor_db
+4. (Optional) You can also connect directly to verify:
+   ```bash
+   psql -U postgres -d doctor_db
+   ```
 
-Set the connection string for the backend by defining the `DATABASE_URL`
-environment variable:
+5. Configure the database connection string:
 
-```bash
-export DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/doctor_db"
-```
+   **Option A –** Edit `backend/database.py`:
+   ```python
+   SQLALCHEMY_DATABASE_URL = "postgresql://postgres:<password>@localhost:5432/doctor_db"
+   ```
+
+   **Option B –** Use an environment variable:
+   ```bash
+   export DATABASE_URL="postgresql://<user>:<password>@<host>:<port>/doctor_db"
+   ```
+
+When the backend starts for the first time, it will automatically create the required tables.
