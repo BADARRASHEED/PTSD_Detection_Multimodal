@@ -3,3 +3,5 @@
 
 # Node dependencies (ignore globally)
 **/node_modules/
+
+__pycache__/
