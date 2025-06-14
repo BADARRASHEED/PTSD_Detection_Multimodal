@@ -1,9 +1,10 @@
-# Ignore only the .venv folder
+# Python virtual environment
 .venv/
 
-node_modules/
-
+# Node dependencies (ignore globally)
 **/node_modules/
 
 # Ignore database files
 *.db
+
+__pycache__/
