@@ -151,12 +151,18 @@ export default function DoctorDashboard() {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) throw new Error("Prediction failed.");
       const data = await response.json();
-      setPrediction(data.prediction || "No Result");
-      if (startTime) setElapsedTime((Date.now() - startTime) / 1000); // seconds
+
+      if (!response.ok) {
+        console.error("Prediction request failed:", data);
+        alert(data.detail || "Prediction failed. Please try again.");
+        setPrediction(null);
+      } else {
+        setPrediction(data.prediction || "No Result");
+        if (startTime) setElapsedTime((Date.now() - startTime) / 1000); // seconds
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Error during prediction request:", error);
       alert("Prediction failed. Please try again.");
       setPrediction(null);
     } finally {
