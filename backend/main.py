@@ -32,6 +32,11 @@ def get_db():
         db.close()
 
 
+@app.get("/")
+def root():
+    return {"message": "Welcome to the PTSD Multimodal API!"}
+
+
 # === CRUD Endpoints for Doctors ===
 @app.post("/doctor/create")
 async def create_doc_api(doc: DoctorCreate, db: Session = Depends(get_db)):
