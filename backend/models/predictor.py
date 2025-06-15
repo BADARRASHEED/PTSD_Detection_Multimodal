@@ -4,9 +4,11 @@ import torch.nn as nn
 from torchvision import transforms, models
 from transformers import BertTokenizer, BertForSequenceClassification
 from PIL import Image
+
 # Import the fusion model from the local package path
 from .fusion_model import PTSDVideoTransformer, FusionHead, LateFusion
 import warnings
+
 warnings.filterwarnings("ignore")
 
 # ─── Constants ───
@@ -23,7 +25,7 @@ CKPT_FUSION = "checkpoints/best_fusion_model.pth"
 
 # ─── Class names and tokenizer ───
 CLASS_NAMES = ["NO PTSD", "PTSD"]
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
 # ─── Global caches for models ───
 _VIDEO_MODEL = None
@@ -32,12 +34,14 @@ _TEXT_MODEL = None
 _FUSION_MODEL = None
 
 # ─── Image transforms ───
-img_tf = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406],
-                         [0.229, 0.224, 0.225])
-])
+img_tf = transforms.Compose(
+    [
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ]
+)
+
 
 def load_video_model():
     """Load the video model once and return the cached instance."""
@@ -48,6 +52,7 @@ def load_video_model():
         model.load_state_dict(ckpt, strict=False)
         _VIDEO_MODEL = model.to(DEVICE).eval()
     return _VIDEO_MODEL
+
 
 def load_audio_model():
     """Load the audio model once and return the cached instance."""
@@ -60,15 +65,19 @@ def load_audio_model():
         _AUDIO_MODEL = model.to(DEVICE).eval()
     return _AUDIO_MODEL
 
+
 def load_text_model():
     """Load the text model once and return the cached instance."""
     global _TEXT_MODEL
     if _TEXT_MODEL is None:
-        model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=NUM_CLASSES)
+        model = BertForSequenceClassification.from_pretrained(
+            "bert-base-uncased", num_labels=NUM_CLASSES
+        )
         ckpt = torch.load(CKPT_TEXT, map_location=DEVICE)
         model.load_state_dict(ckpt, strict=False)
         _TEXT_MODEL = model.to(DEVICE).eval()
     return _TEXT_MODEL
+
 
 def load_fusion_model():
     """Load the fusion model and its components once and return the cache."""
@@ -83,45 +92,68 @@ def load_fusion_model():
         _FUSION_MODEL = model.to(DEVICE).eval()
     return _FUSION_MODEL
 
+
 def load_video_frames(frame_folder):
-    frame_paths = sorted([os.path.join(frame_folder, f) for f in os.listdir(frame_folder)
-                          if f.endswith('.jpg') or f.endswith('.png')])
+    frame_paths = sorted(
+        [
+            os.path.join(frame_folder, f)
+            for f in os.listdir(frame_folder)
+            if f.endswith(".jpg") or f.endswith(".png")
+        ]
+    )
     if len(frame_paths) < SEQ_LEN:
         frame_paths += [frame_paths[-1]] * (SEQ_LEN - len(frame_paths))
     frame_paths = frame_paths[:SEQ_LEN]
-    frames = [img_tf(Image.open(p).convert('RGB')) for p in frame_paths]
+    frames = [img_tf(Image.open(p).convert("RGB")) for p in frame_paths]
     return torch.stack(frames, dim=1)  # Shape: [3, SEQ_LEN, 224, 224]
 
+
 def load_spectrograms(spec_folder, prefix):
-    spec_paths = sorted([os.path.join(spec_folder, f) for f in os.listdir(spec_folder)
-                         if f.startswith(prefix) and f.endswith('.png')])
+    spec_paths = sorted(
+        [
+            os.path.join(spec_folder, f)
+            for f in os.listdir(spec_folder)
+            if f.startswith(prefix) and f.endswith(".png")
+        ]
+    )
     if len(spec_paths) < SEQ_LEN:
         spec_paths += [spec_paths[-1]] * (SEQ_LEN - len(spec_paths))
     spec_paths = spec_paths[:SEQ_LEN]
-    specs = [img_tf(Image.open(p).convert('RGB')) for p in spec_paths]
+    specs = [img_tf(Image.open(p).convert("RGB")) for p in spec_paths]
     return torch.stack(specs, dim=1)  # Shape: [3, SEQ_LEN, 224, 224]
+
 
 def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text):
     model = load_fusion_model()
 
     # === VIDEO ===
-    vid = load_video_frames(frame_folder).unsqueeze(0).to(DEVICE)  # [1, 3, SEQ_LEN, 224, 224]
+    vid = (
+        load_video_frames(frame_folder).unsqueeze(0).to(DEVICE)
+    )  # [1, 3, SEQ_LEN, 224, 224]
 
     # === AUDIO ===
     patient_id = os.path.basename(frame_folder)
-    aud = load_spectrograms(spectrogram_folder, prefix=patient_id).unsqueeze(0).to(DEVICE)
+    aud = (
+        load_spectrograms(spectrogram_folder, prefix=patient_id).unsqueeze(0).to(DEVICE)
+    )
 
     # === TEXT ===
-    enc = tokenizer(transcript_text, return_tensors='pt',
-                    padding='max_length', truncation=True, max_length=MAX_TEXT_LEN)
-    ids = enc['input_ids'].to(DEVICE)
-    mask = enc['attention_mask'].to(DEVICE)
+    enc = tokenizer(
+        transcript_text,
+        return_tensors="pt",
+        padding="max_length",
+        truncation=True,
+        max_length=MAX_TEXT_LEN,
+    )
+    ids = enc["input_ids"].to(DEVICE)
+    mask = enc["attention_mask"].to(DEVICE)
 
     # === Predict ===
     with torch.no_grad():
         logits = model(vid, aud, ids, mask)
         pred = torch.argmax(logits, dim=1).item()
     return CLASS_NAMES[pred]
+
 
 # Initialize models on module import
 load_fusion_model()
