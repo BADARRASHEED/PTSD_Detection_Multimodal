@@ -14,14 +14,13 @@ export default function DoctorDashboard() {
   const [prediction, setPrediction] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [startTime, setStartTime] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  // UI Animation for Loader
+  // Loader spinner component
   function Loader() {
     return (
       <div className="flex flex-col items-center mt-4 mb-2">
@@ -71,10 +70,18 @@ export default function DoctorDashboard() {
 
   // --- Handle Recording ---
   const handleStartRecording = async () => {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (
+      typeof window === "undefined" ||
+      !navigator.mediaDevices ||
+      typeof navigator.mediaDevices.getUserMedia !== "function"
+    ) {
       alert(
-        "Video recording is unavailable. Use a secure (https) connection or a supported browser."
+        "Video recording is unavailable. Please use a secure (https) connection in a supported browser."
       );
+      return;
+    }
+    if (typeof window.MediaRecorder !== "function") {
+      alert("MediaRecorder is not supported in this browser.");
       return;
     }
     try {
@@ -93,9 +100,7 @@ export default function DoctorDashboard() {
         setPrediction(null);
         setElapsedTime(null);
         if (videoRef.current?.srcObject instanceof MediaStream) {
-          videoRef.current.srcObject
-            .getTracks()
-            .forEach((track) => track.stop());
+          videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
           videoRef.current.srcObject = null;
         }
       };
@@ -112,6 +117,7 @@ export default function DoctorDashboard() {
       }, MAX_VIDEO_DURATION);
     } catch (error) {
       console.error("Error starting video recording:", error);
+      alert("Unable to access camera. Please check browser permissions.");
     }
   };
 
@@ -153,12 +159,18 @@ export default function DoctorDashboard() {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) throw new Error("Prediction failed.");
       const data = await response.json();
-      setPrediction(data.prediction || "No Result");
-      setElapsedTime((Date.now() - start) / 1000); // seconds
+
+      if (!response.ok) {
+        console.error("Prediction request failed:", data);
+        alert(data.detail || "Prediction failed. Please try again.");
+        setPrediction(null);
+      } else {
+        setPrediction(data.prediction || "No Result");
+        setElapsedTime((Date.now() - start) / 1000); // seconds
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Error during prediction request:", error);
       alert("Prediction failed. Please try again.");
       setPrediction(null);
     } finally {
@@ -176,6 +188,7 @@ export default function DoctorDashboard() {
 
   useEffect(() => {
     return () => stopRecording();
+    // eslint-disable-next-line
   }, []);
 
   // --- Beautiful Prediction Card ---
