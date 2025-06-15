@@ -48,7 +48,7 @@ def load_video_model():
     global _VIDEO_MODEL
     if _VIDEO_MODEL is None:
         model = PTSDVideoTransformer(num_classes=NUM_CLASSES)
-        ckpt = torch.load(CKPT_VIDEO, map_location=DEVICE)
+        ckpt = torch.load(CKPT_VIDEO, map_location=DEVICE, weights_only=False)
         model.load_state_dict(ckpt, strict=False)
         _VIDEO_MODEL = model.to(DEVICE).eval()
     return _VIDEO_MODEL
@@ -60,7 +60,7 @@ def load_audio_model():
     if _AUDIO_MODEL is None:
         model = models.efficientnet_v2_l(weights=None)
         model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, NUM_CLASSES)
-        ckpt = torch.load(CKPT_AUDIO, map_location=DEVICE)
+        ckpt = torch.load(CKPT_AUDIO, map_location=DEVICE, weights_only=False)
         model.load_state_dict(ckpt, strict=False)
         _AUDIO_MODEL = model.to(DEVICE).eval()
     return _AUDIO_MODEL
@@ -73,7 +73,7 @@ def load_text_model():
         model = BertForSequenceClassification.from_pretrained(
             "bert-base-uncased", num_labels=NUM_CLASSES
         )
-        ckpt = torch.load(CKPT_TEXT, map_location=DEVICE)
+        ckpt = torch.load(CKPT_TEXT, map_location=DEVICE, weights_only=False)
         model.load_state_dict(ckpt, strict=False)
         _TEXT_MODEL = model.to(DEVICE).eval()
     return _TEXT_MODEL
@@ -87,7 +87,7 @@ def load_fusion_model():
         am = load_audio_model()
         tm = load_text_model()
         model = LateFusion(vm, tm, am, NUM_CLASSES)
-        fusion_ckpt = torch.load(CKPT_FUSION, map_location=DEVICE)
+        fusion_ckpt = torch.load(CKPT_FUSION, map_location=DEVICE, weights_only=False)
         model.load_state_dict(fusion_ckpt, strict=False)
         _FUSION_MODEL = model.to(DEVICE).eval()
     return _FUSION_MODEL
