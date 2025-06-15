@@ -60,11 +60,11 @@ class LateFusion(nn.Module):
     def __init__(self, vm, tm, am, nc=2):
         super().__init__()
         self.vm = vm  # PTSDVideoTransformer
-        self.tm = tm  # BERT (transformers)
+        self.tm = tm  # text model
         self.am = am  # EfficientNetV2
         self.head = FusionHead(nc)
 
-    def forward(self, vids, auds, ids, mask):
+    def forward(self, vids, auds, text_feat):
         # === Video ===
         v = self.vm(vids)  # (B, nc)
 
@@ -75,7 +75,9 @@ class LateFusion(nn.Module):
         a = fl.view(B, T, -1).mean(dim=1)  # (B, nc)
 
         # === Text ===
-        t = self.tm(input_ids=ids, attention_mask=mask).logits  # (B, nc)
+        # ``text_feat`` is expected to be a tensor of shape ``(B, nc)`` already
+        # computed by the text model.
+        t = text_feat
 
         # === Fusion ===
         return self.head(v, t, a)  # (B, nc)
