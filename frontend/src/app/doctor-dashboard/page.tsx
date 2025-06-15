@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
-const MAX_VIDEO_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
+const MAX_VIDEO_DURATION = 10 * 60 * 1000; // 10 minutes
 
 export default function DoctorDashboard() {
   const [choice, setChoice] = useState<"upload" | "record" | null>(null);
@@ -12,10 +12,42 @@ export default function DoctorDashboard() {
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [prediction, setPrediction] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState<number | null>(null);
+  const [startTime, setStartTime] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // UI Animation for Loader
+  function Loader() {
+    return (
+      <div className="flex flex-col items-center mt-4 mb-2">
+        <svg
+          className="animate-spin h-8 w-8 text-teal-700 mb-2"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-20"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+            fill="none"
+          />
+          <path
+            className="opacity-70"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
+        </svg>
+        <span className="text-teal-700 text-sm font-semibold">
+          Analyzing video, please wait…
+        </span>
+      </div>
+    );
+  }
 
   // --- Handle File Upload ---
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,6 +63,7 @@ export default function DoctorDashboard() {
       }
       setSelectedFile(file);
       setPrediction(null);
+      setElapsedTime(null);
     }
   };
 
@@ -50,6 +83,7 @@ export default function DoctorDashboard() {
         const blob = new Blob(chunks.current, { type: "video/webm" });
         setRecordedBlob(blob);
         setPrediction(null);
+        setElapsedTime(null);
         if (videoRef.current?.srcObject instanceof MediaStream) {
           videoRef.current.srcObject
             .getTracks()
@@ -61,7 +95,6 @@ export default function DoctorDashboard() {
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
 
-      // Stop recording after 10 minutes
       setTimeout(() => {
         if (mediaRecorderRef.current && isRecording) {
           mediaRecorderRef.current.stop();
@@ -77,9 +110,7 @@ export default function DoctorDashboard() {
   const stopRecording = (reset: boolean = false) => {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
-    if (reset) {
-      setRecordedBlob(null);
-    }
+    if (reset) setRecordedBlob(null);
     if (videoRef.current?.srcObject instanceof MediaStream) {
       videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
       videoRef.current.srcObject = null;
@@ -100,9 +131,10 @@ export default function DoctorDashboard() {
       alert("Please complete the required action before submitting.");
       return;
     }
-
     setLoading(true);
     setPrediction(null);
+    setElapsedTime(null);
+    setStartTime(Date.now());
 
     const formData = new FormData();
     formData.append("video", fileToSend, "input_video.mp4");
@@ -112,11 +144,10 @@ export default function DoctorDashboard() {
         method: "POST",
         body: formData,
       });
-      if (!response.ok) {
-        throw new Error("Prediction failed.");
-      }
+      if (!response.ok) throw new Error("Prediction failed.");
       const data = await response.json();
       setPrediction(data.prediction || "No Result");
+      if (startTime) setElapsedTime((Date.now() - startTime) / 1000); // seconds
     } catch (error) {
       alert("Prediction failed. Please try again.");
       setPrediction(null);
@@ -131,16 +162,71 @@ export default function DoctorDashboard() {
     if (confirm) handleLogout();
     setShowLogoutModal(false);
   };
+  const handleLogout = () => (window.location.href = "/login");
 
-  const handleLogout = () => {
-    window.location.href = "/login";
-  };
-
-  // --- Cleanup Recording on Unmount ---
   useEffect(() => {
     return () => stopRecording();
     // eslint-disable-next-line
   }, []);
+
+  // --- Beautiful Prediction Card ---
+  const renderPrediction = () => {
+    if (!prediction) return null;
+    const isPTSD = prediction.toLowerCase().includes("ptsd");
+    return (
+      <div className={`mt-6 flex flex-col items-center`}>
+        <div
+          className={`
+          w-full max-w-md rounded-2xl shadow-xl p-8 flex flex-col items-center
+          ${
+            isPTSD
+              ? "bg-red-100 border border-red-400"
+              : "bg-green-100 border border-green-400"
+          }
+        `}
+        >
+          <div className="mb-2 text-6xl">{isPTSD ? "🧠" : "😊"}</div>
+          <h3
+            className={`text-2xl font-bold mb-1 ${
+              isPTSD ? "text-red-700" : "text-green-700"
+            }`}
+          >
+            {isPTSD ? "PTSD Detected" : "No PTSD Detected"}
+          </h3>
+          <p className="text-gray-700 mb-2">
+            {isPTSD
+              ? "Indicators suggest this patient may have PTSD. Please consider clinical evaluation for confirmation."
+              : "No significant indicators of PTSD were detected in this analysis."}
+          </p>
+          {elapsedTime !== null && (
+            <div className="mb-2 text-sm text-gray-800">
+              <span className="font-medium">Time to Prediction:</span>{" "}
+              <span className="font-mono">
+                {elapsedTime.toFixed(1)} seconds
+              </span>
+            </div>
+          )}
+          <button
+            onClick={() => {
+              setPrediction(null);
+              setSelectedFile(null);
+              setRecordedBlob(null);
+              setElapsedTime(null);
+              setChoice(null);
+            }}
+            className={`mt-4 px-5 py-2 rounded-xl shadow text-white font-semibold transition 
+            ${
+              isPTSD
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-green-600 hover:bg-green-700"
+            }`}
+          >
+            Analyze Another Video
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   // --- Render ---
   return (
@@ -172,8 +258,8 @@ export default function DoctorDashboard() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 bg-gray-100">
-        <main className="p-6">
+      <div className="flex-1 bg-gray-100 flex flex-col">
+        <main className="p-6 flex-1">
           {/* Breadcrumbs */}
           {choice !== null && (
             <div className="mb-6">
@@ -201,7 +287,7 @@ export default function DoctorDashboard() {
           )}
 
           {/* Choice Section */}
-          {choice === null && (
+          {choice === null && !prediction && (
             <div className="bg-white p-6 rounded shadow-md mb-8 text-center">
               <h2 className="text-xl font-semibold mb-4">Choose an Action</h2>
               <div className="flex justify-center gap-4">
@@ -222,7 +308,7 @@ export default function DoctorDashboard() {
           )}
 
           {/* Upload Section */}
-          {choice === "upload" && (
+          {choice === "upload" && !prediction && (
             <div className="bg-white p-6 rounded shadow-md mb-8">
               <h2 className="text-xl font-semibold mb-4">
                 Upload Recorded File
@@ -243,18 +329,13 @@ export default function DoctorDashboard() {
                 className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-800"
                 disabled={loading}
               >
-                {loading ? "Analyzing..." : "Analyze PTSD"}
+                {loading ? <Loader /> : "Analyze PTSD"}
               </button>
-              {prediction && (
-                <p className="text-green-700 font-semibold mt-2">
-                  Prediction: <span className="uppercase">{prediction}</span>
-                </p>
-              )}
             </div>
           )}
 
           {/* Recording Section */}
-          {choice === "record" && (
+          {choice === "record" && !prediction && (
             <div className="bg-white p-6 rounded shadow-md mb-8">
               <h2 className="text-xl font-semibold mb-4">Live Recording</h2>
               <video
@@ -298,18 +379,15 @@ export default function DoctorDashboard() {
                     className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-800"
                     disabled={loading}
                   >
-                    {loading ? "Analyzing..." : "Analyze PTSD"}
+                    {loading ? <Loader /> : "Analyze PTSD"}
                   </button>
-                  {prediction && (
-                    <p className="text-green-700 font-semibold mt-2">
-                      Prediction:{" "}
-                      <span className="uppercase">{prediction}</span>
-                    </p>
-                  )}
                 </div>
               )}
             </div>
           )}
+
+          {/* --- Interactive Prediction Result Card --- */}
+          {prediction && renderPrediction()}
         </main>
       </div>
 
