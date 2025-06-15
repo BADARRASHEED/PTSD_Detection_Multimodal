@@ -2,11 +2,11 @@ import os
 import torch
 import torch.nn as nn
 from torchvision import transforms, models
-from transformers import BertTokenizer, BertForSequenceClassification
 from PIL import Image
+import joblib
 
-# Import the fusion model from the local package path
 from .fusion_model import PTSDVideoTransformer, FusionHead, LateFusion
+
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -20,12 +20,13 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # ─── Checkpoint paths (you can modify if stored elsewhere) ───
 CKPT_VIDEO = "checkpoints/best_tublett_embedding_model.pth"
 CKPT_AUDIO = "checkpoints/best_effnet_vit_ensemble.pth"
-CKPT_TEXT = "checkpoints/ensemble_model.pth"
-CKPT_FUSION = "checkpoints/best_fusion_model.pth"
+CKPT_TEXT = (
+    "checkpoints/ensemble_model.pth"  # <-- this is your ensemble .pkl or .pth (joblib)
+)
+CKPT_FUSION = "checkpoints/cross_attn_fusion.pth"
 
-# ─── Class names and tokenizer ───
+# ─── Class names ───
 CLASS_NAMES = ["NO PTSD", "PTSD"]
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
 # ─── Global caches for models ───
 _VIDEO_MODEL = None
@@ -43,8 +44,35 @@ img_tf = transforms.Compose(
 )
 
 
+# ─── TorchTextEnsembleModel definition (copied from your notebook, slightly cleaned) ───
+class TorchTextEnsembleModel(nn.Module):
+    def __init__(self, joblib_path, device="cpu", out_dim=128):
+        super().__init__()
+        self.device = device
+        # This joblib file contains: vectorizer, lr_model, xgb_meta
+        self.ensemble = joblib.load(joblib_path)
+        self.vectorizer = self.ensemble["vectorizer"]
+        self.lr_model = self.ensemble["lr_model"]
+        self.xgb_meta = self.ensemble["xgb_meta"]
+        self.text_proj = nn.Linear(1, out_dim)
+
+    def forward(self, texts):
+        with torch.no_grad():
+            X_tfidf = self.vectorizer.transform(texts)
+            lr_probs = self.lr_model.predict_proba(X_tfidf)[:, 1]
+            meta_X = np.stack([lr_probs, lr_probs], axis=1)
+            meta_probs = self.xgb_meta.predict_proba(meta_X)[:, 1]
+            out = torch.tensor(
+                meta_probs, dtype=torch.float32, device=self.device
+            ).unsqueeze(1)
+        out = self.text_proj(out)
+        return out  # [B, 128]
+
+
+import numpy as np
+
+
 def load_video_model():
-    """Load the video model once and return the cached instance."""
     global _VIDEO_MODEL
     if _VIDEO_MODEL is None:
         model = PTSDVideoTransformer(num_classes=NUM_CLASSES)
@@ -55,7 +83,6 @@ def load_video_model():
 
 
 def load_audio_model():
-    """Load the audio model once and return the cached instance."""
     global _AUDIO_MODEL
     if _AUDIO_MODEL is None:
         model = models.efficientnet_v2_l(weights=None)
@@ -67,20 +94,17 @@ def load_audio_model():
 
 
 def load_text_model():
-    """Load the text model once and return the cached instance."""
     global _TEXT_MODEL
     if _TEXT_MODEL is None:
-        model = BertForSequenceClassification.from_pretrained(
-            "bert-base-uncased", num_labels=NUM_CLASSES
+        # NOTE: This path should point to your joblib file (ensemble with TFIDF, LR, XGB)
+        model = TorchTextEnsembleModel(
+            joblib_path=CKPT_TEXT, device=DEVICE, out_dim=128
         )
-        ckpt = torch.load(CKPT_TEXT, map_location=DEVICE, weights_only=False)
-        model.load_state_dict(ckpt, strict=False)
         _TEXT_MODEL = model.to(DEVICE).eval()
     return _TEXT_MODEL
 
 
 def load_fusion_model():
-    """Load the fusion model and its components once and return the cache."""
     global _FUSION_MODEL
     if _FUSION_MODEL is None:
         vm = load_video_model()
@@ -105,7 +129,7 @@ def load_video_frames(frame_folder):
         frame_paths += [frame_paths[-1]] * (SEQ_LEN - len(frame_paths))
     frame_paths = frame_paths[:SEQ_LEN]
     frames = [img_tf(Image.open(p).convert("RGB")) for p in frame_paths]
-    return torch.stack(frames, dim=1)  # Shape: [3, SEQ_LEN, 224, 224]
+    return torch.stack(frames, dim=1)  # [3, SEQ_LEN, 224, 224]
 
 
 def load_spectrograms(spec_folder, prefix):
@@ -120,16 +144,14 @@ def load_spectrograms(spec_folder, prefix):
         spec_paths += [spec_paths[-1]] * (SEQ_LEN - len(spec_paths))
     spec_paths = spec_paths[:SEQ_LEN]
     specs = [img_tf(Image.open(p).convert("RGB")) for p in spec_paths]
-    return torch.stack(specs, dim=1)  # Shape: [3, SEQ_LEN, 224, 224]
+    return torch.stack(specs, dim=1)  # [3, SEQ_LEN, 224, 224]
 
 
 def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text):
     model = load_fusion_model()
 
     # === VIDEO ===
-    vid = (
-        load_video_frames(frame_folder).unsqueeze(0).to(DEVICE)
-    )  # [1, 3, SEQ_LEN, 224, 224]
+    vid = load_video_frames(frame_folder).unsqueeze(0).to(DEVICE)
 
     # === AUDIO ===
     patient_id = os.path.basename(frame_folder)
@@ -138,22 +160,15 @@ def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text):
     )
 
     # === TEXT ===
-    enc = tokenizer(
-        transcript_text,
-        return_tensors="pt",
-        padding="max_length",
-        truncation=True,
-        max_length=MAX_TEXT_LEN,
-    )
-    ids = enc["input_ids"].to(DEVICE)
-    mask = enc["attention_mask"].to(DEVICE)
+    text_model = load_text_model()
+    text_feat = text_model([transcript_text])  # Pass as a list
 
     # === Predict ===
     with torch.no_grad():
-        logits = model(vid, aud, ids, mask)
+        logits = model(vid, aud, text_feat)
         pred = torch.argmax(logits, dim=1).item()
     return CLASS_NAMES[pred]
 
 
-# Initialize models on module import
+# Initialize models on module import (optional, for warm start)
 load_fusion_model()
