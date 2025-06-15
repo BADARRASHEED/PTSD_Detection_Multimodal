@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { BASE_URL } from "../utils/api";
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
 const MAX_VIDEO_DURATION = 10 * 60 * 1000; // 10 minutes
@@ -140,7 +141,7 @@ export default function DoctorDashboard() {
     formData.append("video", fileToSend, "input_video.mp4");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/predict", {
+      const response = await fetch(`${BASE_URL}/predict`, {
         method: "POST",
         body: formData,
       });
@@ -149,6 +150,7 @@ export default function DoctorDashboard() {
       setPrediction(data.prediction || "No Result");
       if (startTime) setElapsedTime((Date.now() - startTime) / 1000); // seconds
     } catch (error) {
+      console.error(error);
       alert("Prediction failed. Please try again.");
       setPrediction(null);
     } finally {
@@ -166,7 +168,6 @@ export default function DoctorDashboard() {
 
   useEffect(() => {
     return () => stopRecording();
-    // eslint-disable-next-line
   }, []);
 
   // --- Beautiful Prediction Card ---
