@@ -14,7 +14,6 @@ export default function DoctorDashboard() {
   const [prediction, setPrediction] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
-  const [startTime, setStartTime] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
@@ -149,7 +148,6 @@ export default function DoctorDashboard() {
     setPrediction(null);
     setElapsedTime(null);
     const start = Date.now();
-    setStartTime(start);
 
     const formData = new FormData();
     formData.append("video", fileToSend, "input_video.mp4");
@@ -188,13 +186,12 @@ export default function DoctorDashboard() {
 
   useEffect(() => {
     return () => stopRecording();
-    // eslint-disable-next-line
   }, []);
 
   // --- Beautiful Prediction Card ---
   const renderPrediction = () => {
     if (!prediction) return null;
-    const isPTSD = prediction.toLowerCase().includes("ptsd");
+    const isPTSD = prediction.trim().toUpperCase() === "PTSD";
     return (
       <div className={`mt-6 flex flex-col items-center`}>
         <div
