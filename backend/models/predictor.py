@@ -4,7 +4,7 @@ import torch.nn as nn
 from torchvision import transforms, models
 from transformers import BertTokenizer, BertForSequenceClassification
 from PIL import Image
-from models.fusion_model import PTSDVideoTransformer, FusionHead, LateFusion  # Assumes you modularized the model
+from fusion_model import PTSDVideoTransformer, FusionHead, LateFusion  # Assumes you modularized the model
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -17,7 +17,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # ─── Checkpoint paths (you can modify if stored elsewhere) ───
 CKPT_VIDEO = "checkpoints/best_tublett_embedding_model.pth"
 CKPT_AUDIO = "checkpoints/best_effnet_vit_ensemble.pth"
-CKPT_TEXT = "checkpoints/text_model.pth"
+CKPT_TEXT = "checkpoints/ensemble_model.pth"
 CKPT_FUSION = "checkpoints/best_fusion_model.pth"
 
 # ─── Class names and tokenizer ───

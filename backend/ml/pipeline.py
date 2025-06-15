@@ -3,7 +3,7 @@ from ml.utils.extract_audio import extract_audio_from_video
 from ml.utils.extract_frames import extract_faces_from_video
 from ml.utils.spectrogram import process_audio_file
 from ml.utils.transcribe import transcribe_and_save
-from models.predictor import predict_fusion_model
+from ..models.predictor import predict_fusion_model
 
 
 def process_video(video_path: str) -> str:

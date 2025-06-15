@@ -1,4 +1,4 @@
-"use client"; // Marking this file as a client-side component
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 
@@ -10,33 +10,31 @@ export default function DoctorDashboard() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [prediction, setPrediction] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunks: Blob[] = [];
-  const [showLogoutModal, setShowLogoutModal] = useState(false); // State for logout modal
+  const chunks = useRef<Blob[]>([]);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  // --- Handle File Upload ---
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      // Check if file exceeds max size
       if (file.size > MAX_FILE_SIZE) {
         alert("File size exceeds the 500MB limit.");
         return;
       }
-      // Check if file type is valid
       if (!file.type.startsWith("video/")) {
         alert("Invalid file type. Please upload a valid video file.");
         return;
       }
       setSelectedFile(file);
+      setPrediction(null);
     }
   };
 
-  const handleLogout = () => {
-    // Redirect to login page
-    window.location.href = "/login";
-  };
-
+  // --- Handle Recording ---
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -44,15 +42,18 @@ export default function DoctorDashboard() {
         videoRef.current.srcObject = stream;
       }
       const mediaRecorder = new MediaRecorder(stream);
+      chunks.current = [];
       mediaRecorder.ondataavailable = (e) => {
-        chunks.push(e.data);
+        chunks.current.push(e.data);
       };
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "video/webm" });
+        const blob = new Blob(chunks.current, { type: "video/webm" });
         setRecordedBlob(blob);
+        setPrediction(null);
         if (videoRef.current?.srcObject instanceof MediaStream) {
-          const tracks = videoRef.current.srcObject.getTracks();
-          tracks.forEach((track) => track.stop());
+          videoRef.current.srcObject
+            .getTracks()
+            .forEach((track) => track.stop());
           videoRef.current.srcObject = null;
         }
       };
@@ -73,10 +74,6 @@ export default function DoctorDashboard() {
     }
   };
 
-  const handleStopRecording = () => stopRecording();
-
-  const handleCancelRecording = () => stopRecording(true);
-
   const stopRecording = (reset: boolean = false) => {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
@@ -84,42 +81,68 @@ export default function DoctorDashboard() {
       setRecordedBlob(null);
     }
     if (videoRef.current?.srcObject instanceof MediaStream) {
-      const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach((track) => track.stop());
+      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
       videoRef.current.srcObject = null;
     }
   };
 
-  const handleSubmit = () => {
+  const handleStopRecording = () => stopRecording();
+  const handleCancelRecording = () => stopRecording(true);
+
+  // --- API Submission ---
+  const handleSubmit = async () => {
+    let fileToSend: File | Blob | null = null;
     if (choice === "upload" && selectedFile) {
-      console.log("Submitting file:", selectedFile);
-      // Add API call for file submission here
+      fileToSend = selectedFile;
     } else if (choice === "record" && recordedBlob) {
-      console.log("Submitting recorded video:", recordedBlob);
-      // Add API call for recorded video submission here
+      fileToSend = recordedBlob;
     } else {
       alert("Please complete the required action before submitting.");
+      return;
+    }
+
+    setLoading(true);
+    setPrediction(null);
+
+    const formData = new FormData();
+    formData.append("video", fileToSend, "input_video.mp4");
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error("Prediction failed.");
+      }
+      const data = await response.json();
+      setPrediction(data.prediction || "No Result");
+    } catch (error) {
+      alert("Prediction failed. Please try again.");
+      setPrediction(null);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleOpenLogoutModal = () => {
-    setShowLogoutModal(true);
-  };
-
+  // --- Logout Modal Logic ---
+  const handleOpenLogoutModal = () => setShowLogoutModal(true);
   const handleCloseLogoutModal = (confirm: boolean) => {
-    if (confirm) {
-      handleLogout();
-    }
+    if (confirm) handleLogout();
     setShowLogoutModal(false);
   };
 
+  const handleLogout = () => {
+    window.location.href = "/login";
+  };
+
+  // --- Cleanup Recording on Unmount ---
   useEffect(() => {
-    // Cleanup media recorder and stream when the component unmounts
-    return () => {
-      stopRecording();
-    };
+    return () => stopRecording();
+    // eslint-disable-next-line
   }, []);
 
+  // --- Render ---
   return (
     <div className="min-h-screen flex bg-gray-100">
       {/* Sidebar */}
@@ -201,10 +224,12 @@ export default function DoctorDashboard() {
           {/* Upload Section */}
           {choice === "upload" && (
             <div className="bg-white p-6 rounded shadow-md mb-8">
-              <h2 className="text-xl font-semibold mb-4">Upload Recorded File</h2>
+              <h2 className="text-xl font-semibold mb-4">
+                Upload Recorded File
+              </h2>
               <input
                 type="file"
-                accept="video/mp4, video/mp3"
+                accept="video/mp4,video/webm,video/mov,video/avi"
                 onChange={handleFileChange}
                 className="mb-4"
               />
@@ -216,9 +241,15 @@ export default function DoctorDashboard() {
               <button
                 onClick={handleSubmit}
                 className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-800"
+                disabled={loading}
               >
-                Analyze PTSD
+                {loading ? "Analyzing..." : "Analyze PTSD"}
               </button>
+              {prediction && (
+                <p className="text-green-700 font-semibold mt-2">
+                  Prediction: <span className="uppercase">{prediction}</span>
+                </p>
+              )}
             </div>
           )}
 
@@ -265,9 +296,16 @@ export default function DoctorDashboard() {
                   <button
                     onClick={handleSubmit}
                     className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-800"
+                    disabled={loading}
                   >
-                    Analyze PTSD
+                    {loading ? "Analyzing..." : "Analyze PTSD"}
                   </button>
+                  {prediction && (
+                    <p className="text-green-700 font-semibold mt-2">
+                      Prediction:{" "}
+                      <span className="uppercase">{prediction}</span>
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -279,7 +317,9 @@ export default function DoctorDashboard() {
       {showLogoutModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded shadow-md">
-            <h2 className="text-lg font-semibold mb-4">Are you sure you want to logout?</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              Are you sure you want to logout?
+            </h2>
             <div className="flex gap-4">
               <button
                 onClick={() => handleCloseLogoutModal(true)}

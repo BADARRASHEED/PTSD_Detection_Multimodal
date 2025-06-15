@@ -63,12 +63,11 @@ export default function DoctorLogin() {
       router.push("/doctor-dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message); 
+        setError(err.message);
       } else {
         setError("An unexpected error occurred.");
       }
     }
-    
   };
 
   return (
