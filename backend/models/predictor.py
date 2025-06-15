@@ -140,6 +140,10 @@ def load_spectrograms(spec_folder, prefix):
             if f.startswith(prefix) and f.endswith(".png")
         ]
     )
+    if not spec_paths:
+        raise RuntimeError(
+            f"No spectrograms found in {spec_folder} with prefix '{prefix}'"
+        )
     if len(spec_paths) < SEQ_LEN:
         spec_paths += [spec_paths[-1]] * (SEQ_LEN - len(spec_paths))
     spec_paths = spec_paths[:SEQ_LEN]
@@ -147,17 +151,14 @@ def load_spectrograms(spec_folder, prefix):
     return torch.stack(specs, dim=1)  # [3, SEQ_LEN, 224, 224]
 
 
-def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text):
+def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text, base_name):
     model = load_fusion_model()
 
     # === VIDEO ===
     vid = load_video_frames(frame_folder).unsqueeze(0).to(DEVICE)
 
     # === AUDIO ===
-    patient_id = os.path.basename(frame_folder)
-    aud = (
-        load_spectrograms(spectrogram_folder, prefix=patient_id).unsqueeze(0).to(DEVICE)
-    )
+    aud = load_spectrograms(spectrogram_folder, prefix=base_name).unsqueeze(0).to(DEVICE)
 
     # === TEXT ===
     text_model = load_text_model()
