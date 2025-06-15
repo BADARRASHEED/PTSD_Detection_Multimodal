@@ -14,6 +14,7 @@ export default function DoctorDashboard() {
   const [prediction, setPrediction] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [startTime, setStartTime] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -141,7 +142,8 @@ export default function DoctorDashboard() {
     setLoading(true);
     setPrediction(null);
     setElapsedTime(null);
-    setStartTime(Date.now());
+    const start = Date.now();
+    setStartTime(start);
 
     const formData = new FormData();
     formData.append("video", fileToSend, "input_video.mp4");
@@ -154,7 +156,7 @@ export default function DoctorDashboard() {
       if (!response.ok) throw new Error("Prediction failed.");
       const data = await response.json();
       setPrediction(data.prediction || "No Result");
-      if (startTime) setElapsedTime((Date.now() - startTime) / 1000); // seconds
+      setElapsedTime((Date.now() - start) / 1000); // seconds
     } catch (error) {
       console.error(error);
       alert("Prediction failed. Please try again.");
