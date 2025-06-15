@@ -20,7 +20,7 @@ export default function DoctorDashboard() {
   const chunks = useRef<Blob[]>([]);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  // UI Animation for Loader
+  // Loader spinner component
   function Loader() {
     return (
       <div className="flex flex-col items-center mt-4 mb-2">
@@ -70,10 +70,18 @@ export default function DoctorDashboard() {
 
   // --- Handle Recording ---
   const handleStartRecording = async () => {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (
+      typeof window === "undefined" ||
+      !navigator.mediaDevices ||
+      typeof navigator.mediaDevices.getUserMedia !== "function"
+    ) {
       alert(
-        "Video recording is unavailable. Use a secure (https) connection or a supported browser."
+        "Video recording is unavailable. Please use a secure (https) connection in a supported browser."
       );
+      return;
+    }
+    if (typeof window.MediaRecorder !== "function") {
+      alert("MediaRecorder is not supported in this browser.");
       return;
     }
     try {
@@ -92,9 +100,7 @@ export default function DoctorDashboard() {
         setPrediction(null);
         setElapsedTime(null);
         if (videoRef.current?.srcObject instanceof MediaStream) {
-          videoRef.current.srcObject
-            .getTracks()
-            .forEach((track) => track.stop());
+          videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
           videoRef.current.srcObject = null;
         }
       };
@@ -111,6 +117,7 @@ export default function DoctorDashboard() {
       }, MAX_VIDEO_DURATION);
     } catch (error) {
       console.error("Error starting video recording:", error);
+      alert("Unable to access camera. Please check browser permissions.");
     }
   };
 
@@ -141,7 +148,8 @@ export default function DoctorDashboard() {
     setLoading(true);
     setPrediction(null);
     setElapsedTime(null);
-    setStartTime(Date.now());
+    const start = Date.now();
+    setStartTime(start);
 
     const formData = new FormData();
     formData.append("video", fileToSend, "input_video.mp4");
@@ -159,7 +167,7 @@ export default function DoctorDashboard() {
         setPrediction(null);
       } else {
         setPrediction(data.prediction || "No Result");
-        if (startTime) setElapsedTime((Date.now() - startTime) / 1000); // seconds
+        setElapsedTime((Date.now() - start) / 1000); // seconds
       }
     } catch (error) {
       console.error("Error during prediction request:", error);
@@ -180,6 +188,7 @@ export default function DoctorDashboard() {
 
   useEffect(() => {
     return () => stopRecording();
+    // eslint-disable-next-line
   }, []);
 
   // --- Beautiful Prediction Card ---
