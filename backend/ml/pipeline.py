@@ -26,18 +26,30 @@ def process_video(video_path: str) -> str:
 
     # === STEP 1: Extract Audio ===
     audio_path = extract_audio_from_video(video_path, audio_dir)
+    if not audio_path:
+        raise RuntimeError(f"Audio extraction failed for {video_path}")
 
     # === STEP 2: Extract Face Frames ===
-    frame_paths = extract_faces_from_video(
-        video_path=video_path,
-        output_folder=frame_dir
-    )
+    try:
+        frame_paths = extract_faces_from_video(
+            video_path=video_path,
+            output_folder=frame_dir
+        )
+    except Exception as e:
+        raise RuntimeError(f"Face extraction failed for {video_path}: {e}")
+    if not frame_paths:
+        raise RuntimeError(f"No faces extracted from {video_path}")
 
     # === STEP 3: Generate Spectrogram Patches ===
-    process_audio_file(audio_path, spec_dir)
+    try:
+        process_audio_file(audio_path, spec_dir)
+    except Exception as e:
+        raise RuntimeError(f"Spectrogram generation failed for {video_path}: {e}")
 
     # === STEP 4: Transcribe & Save Text ===
     transcript_path = transcribe_and_save(audio_path, text_dir)
+    if not transcript_path or not os.path.exists(transcript_path):
+        raise RuntimeError(f"Transcription failed for {video_path}")
 
     # === STEP 5: Read Transcription Text ===
     with open(transcript_path, "r", encoding="utf-8") as f:
