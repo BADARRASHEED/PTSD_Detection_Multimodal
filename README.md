@@ -41,7 +41,12 @@ The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logi
    pip install -r requirements.txt
    ```
 
-3. **Run the development server:**
+3. **Install FFmpeg:** Ensure FFmpeg is installed and accessible in your `PATH`.
+   - **Linux:** `apt-get install ffmpeg`
+   - **macOS:** `brew install ffmpeg`
+   - **Windows:** [Download from the official site](https://ffmpeg.org/download.html) or `choco install ffmpeg`
+
+4. **Run the development server:**
    ```bash
    uvicorn main:app --reload
    ```
