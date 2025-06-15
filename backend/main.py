@@ -6,6 +6,7 @@ import shutil
 
 from database import *
 from crud import *
+from schema import DoctorLogin
 from ml.pipeline import process_video  # ✅ ADD THIS
 
 app = FastAPI()
