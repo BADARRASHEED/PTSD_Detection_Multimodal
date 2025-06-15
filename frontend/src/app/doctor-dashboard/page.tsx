@@ -70,6 +70,12 @@ export default function DoctorDashboard() {
 
   // --- Handle Recording ---
   const handleStartRecording = async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert(
+        "Video recording is unavailable. Use a secure (https) connection or a supported browser."
+      );
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
