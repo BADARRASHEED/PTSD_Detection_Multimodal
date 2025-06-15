@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { z } from "zod";
+import { BASE_URL } from "../utils/api";
 
 //Doctors interface
 interface Doctor {
@@ -165,7 +166,7 @@ export default function ManageDoctors() {
     };
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/doctor/create`, {
+      const response = await fetch(`${BASE_URL}/doctor/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -200,7 +201,7 @@ export default function ManageDoctors() {
   ) => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/doctor/update?doc_id=${doc_id}`,
+        `${BASE_URL}/doctor/update?doc_id=${doc_id}`,
         {
           method: "POST",
           headers: {
@@ -248,7 +249,7 @@ export default function ManageDoctors() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/doctor/delete?doc_id=${doc_id}`,
+        `${BASE_URL}/doctor/delete?doc_id=${doc_id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -274,7 +275,7 @@ export default function ManageDoctors() {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/doctors`);
+        const response = await fetch(`${BASE_URL}/doctors`);
         if (!response.ok) throw new Error("Failed to fetch doctors");
         const data = await response.json();
         setDoctors(data);
@@ -290,7 +291,7 @@ export default function ManageDoctors() {
   }
   const handleViewDetails = async (doc_id: number) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/doctors/${doc_id}`);
+      const response = await fetch(`${BASE_URL}/doctors/${doc_id}`);
       if (!response.ok) throw new Error("Failed to fetch doctor details");
 
       const data = await response.json();

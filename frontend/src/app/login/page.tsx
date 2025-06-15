@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"; // useRouter for navigation
 import Link from "next/link";
 import Nav from "../components/nav";
 import Footer from "../components/footer";
+import { BASE_URL } from "../utils/api";
 
 export default function DoctorLogin() {
   const router = useRouter(); // Initialize router for navigation
@@ -42,7 +43,7 @@ export default function DoctorLogin() {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/doctor/login", {
+      const response = await fetch(`${BASE_URL}/doctor/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
