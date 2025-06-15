@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models import Doctor
+from db_models import Doctor
 from schema import DoctorCreate
 from fastapi import HTTPException
 
