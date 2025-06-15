@@ -4,7 +4,8 @@ import torch.nn as nn
 from torchvision import transforms, models
 from transformers import BertTokenizer, BertForSequenceClassification
 from PIL import Image
-from fusion_model import PTSDVideoTransformer, FusionHead, LateFusion  # Assumes you modularized the model
+# Import the fusion model from the local package path
+from .fusion_model import PTSDVideoTransformer, FusionHead, LateFusion
 import warnings
 warnings.filterwarnings("ignore")
 
