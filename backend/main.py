@@ -88,25 +88,37 @@ async def login_doctor(doc: DoctorLogin, db: Session = Depends(get_db)):
 # === NEW: Multimodal PTSD Prediction ===
 @app.post("/predict")
 async def predict_ptsd(video: UploadFile = File(...)):
+    temp_dir = "temp"
+    os.makedirs(temp_dir, exist_ok=True)
+    video_path = os.path.join(temp_dir, video.filename)
+
+    # Directories created during processing
+    subdirs = [
+        os.path.join(temp_dir, "audio"),
+        os.path.join(temp_dir, "frames"),
+        os.path.join(temp_dir, "spectrogram_patches"),
+        os.path.join(temp_dir, "transcripts"),
+    ]
+
     try:
         # Save uploaded video to temp directory
-        temp_dir = "temp"
-        os.makedirs(temp_dir, exist_ok=True)
-        video_path = os.path.join(temp_dir, video.filename)
-
         with open(video_path, "wb") as f:
             shutil.copyfileobj(video.file, f)
 
         # Run full pipeline → returns "PTSD" or "NO PTSD"
         result = process_video(video_path)
 
-        # Optional cleanup
-        os.remove(video_path)
-
         return {"prediction": result}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        # Remove uploaded video and intermediate folders
+        if os.path.exists(video_path):
+            os.remove(video_path)
+        for d in subdirs:
+            shutil.rmtree(d, ignore_errors=True)
 
 
 """
