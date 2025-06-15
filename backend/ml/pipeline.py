@@ -56,7 +56,10 @@ def process_video(video_path: str) -> str:
 
     # === STEP 6: Run Multimodal Prediction ===
     result = predict_fusion_model(
-        spectrogram_folder=spec_dir, frame_folder=frame_dir, transcript_text=transcript
+        spectrogram_folder=spec_dir,
+        frame_folder=frame_dir,
+        transcript_text=transcript,
+        base_name=base_name,
     )
 
     return result
