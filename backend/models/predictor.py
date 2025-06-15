@@ -97,8 +97,11 @@ def load_text_model():
     global _TEXT_MODEL
     if _TEXT_MODEL is None:
         # NOTE: This path should point to your joblib file (ensemble with TFIDF, LR, XGB)
+        # The text model outputs a feature vector that will be fused with the
+        # video and audio branches. We only need a vector of size
+        # ``NUM_CLASSES`` for the fusion head, so set ``out_dim`` accordingly.
         model = TorchTextEnsembleModel(
-            joblib_path=CKPT_TEXT, device=DEVICE, out_dim=128
+            joblib_path=CKPT_TEXT, device=DEVICE, out_dim=NUM_CLASSES
         )
         _TEXT_MODEL = model.to(DEVICE).eval()
     return _TEXT_MODEL
