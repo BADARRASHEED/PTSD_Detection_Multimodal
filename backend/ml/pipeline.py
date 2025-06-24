@@ -1,4 +1,5 @@
 import os
+import shutil
 from ml.utils.extract_audio import extract_audio_from_video
 from ml.utils.extract_frames import extract_faces_from_video
 from ml.utils.spectrogram import process_audio_file
@@ -29,6 +30,11 @@ def process_video(video_path: str) -> str:
     # ensure base directory exists; the utility functions will create
     # their respective subfolders as needed
     os.makedirs(base_dir, exist_ok=True)
+
+    # Recreate temp folders before processing
+    for d in [audio_dir, frame_dir, spec_dir, text_dir]:
+        shutil.rmtree(d, ignore_errors=True)
+        os.makedirs(d, exist_ok=True)
 
     # === STEP 1: Extract Audio ===
     audio_path = extract_audio_from_video(video_path, audio_dir)
