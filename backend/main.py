@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 import os
 import shutil
 import asyncio
+import uuid
 
 from database import *
 from crud import *
@@ -95,10 +96,14 @@ async def login_doctor(doc: DoctorLogin, db: Session = Depends(get_db)):
 async def predict_ptsd(video: UploadFile = File(...)):
     temp_dir = "temp"
     os.makedirs(temp_dir, exist_ok=True)
-    video_path = os.path.join(temp_dir, video.filename)
 
-    base_name = os.path.splitext(video.filename)[0]
-    base_dir = os.path.join(temp_dir, base_name)
+    # Generate a unique id so concurrent or repeated filenames do not reuse
+    # intermediate directories
+    uid = uuid.uuid4().hex
+    video_ext = os.path.splitext(video.filename)[1]
+    video_path = os.path.join(temp_dir, f"{uid}{video_ext}")
+
+    base_dir = os.path.join(temp_dir, uid)
 
     # Folder created during processing
     subdirs = [base_dir]
