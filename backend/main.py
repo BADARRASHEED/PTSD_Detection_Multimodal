@@ -7,20 +7,20 @@ import shutil
 from database import *
 from crud import *
 from schema import DoctorLogin
-from ml.pipeline import process_video  # ✅ ADD THIS
+from ml.pipeline import process_video
 
 app = FastAPI()
 
-# === CORS (Frontend ↔ Backend) ===
+# === CORS SETUP: Allow frontend-backend communication ===
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# === Setup DB ===
+# === Setup Database Tables ===
 Base.metadata.create_all(bind=engine)
 
 
@@ -37,7 +37,7 @@ def root():
     return {"message": "Welcome to the PTSD Multimodal API!"}
 
 
-# === CRUD Endpoints for Doctors ===
+# === Doctor Management Endpoints ===
 @app.post("/doctor/create")
 async def create_doc_api(doc: DoctorCreate, db: Session = Depends(get_db)):
     return create_doc(db, doc)
@@ -80,10 +80,8 @@ async def login_doctor(doc: DoctorLogin, db: Session = Depends(get_db)):
         )
         .first()
     )
-
     if not db_doc:
         raise HTTPException(status_code=401, detail="Invalid username or password")
-
     return {
         "message": "Login successful",
         "doctor_id": db_doc.doc_id,
@@ -91,14 +89,14 @@ async def login_doctor(doc: DoctorLogin, db: Session = Depends(get_db)):
     }
 
 
-# === NEW: Multimodal PTSD Prediction ===
+# === PTSD Multimodal Prediction Endpoint ===
 @app.post("/predict")
 async def predict_ptsd(video: UploadFile = File(...)):
     temp_dir = "temp"
     os.makedirs(temp_dir, exist_ok=True)
     video_path = os.path.join(temp_dir, video.filename)
 
-    # Directories created during processing
+    # Folders created during processing
     subdirs = [
         os.path.join(temp_dir, "audio"),
         os.path.join(temp_dir, "frames"),
@@ -107,20 +105,18 @@ async def predict_ptsd(video: UploadFile = File(...)):
     ]
 
     try:
-        # Save uploaded video to temp directory
+        # Save uploaded video file
         with open(video_path, "wb") as f:
             shutil.copyfileobj(video.file, f)
 
-        # Run full pipeline → returns "PTSD" or "NO PTSD"
-        result = process_video(video_path)
+        # Run the multimodal inference pipeline
+        result = process_video(video_path)  # "PTSD" or "NO PTSD"
 
         return {"prediction": result}
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
     finally:
-        # Remove uploaded video and intermediate folders
+        # Clean up all temp data
         if os.path.exists(video_path):
             os.remove(video_path)
         for d in subdirs:
@@ -129,8 +125,8 @@ async def predict_ptsd(video: UploadFile = File(...)):
 
 """
 
-To run the FastAPI server, use the command:
-
-uvicorn main:app --reload
+To run the FastAPI server, use:
+    
+    uvicorn main:app --reload
 
 """

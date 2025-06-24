@@ -20,10 +20,8 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # ─── Checkpoint paths (you can modify if stored elsewhere) ───
 CKPT_VIDEO = "checkpoints/best_tublett_embedding_model.pth"
 CKPT_AUDIO = "checkpoints/best_effnet_vit_ensemble.pth"
-CKPT_TEXT = (
-    "checkpoints/ensemble_model.pth"  # <-- this is your ensemble .pkl or .pth (joblib)
-)
-CKPT_FUSION = "checkpoints/cross_attn_fusion.pth"
+CKPT_TEXT = "checkpoints/ensemble_model.pth"
+CKPT_FUSION = "checkpoints/best_fusion_model.pth"
 
 # ─── Class names ───
 CLASS_NAMES = ["NO PTSD", "PTSD"]
@@ -161,7 +159,9 @@ def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text, base
     vid = load_video_frames(frame_folder).unsqueeze(0).to(DEVICE)
 
     # === AUDIO ===
-    aud = load_spectrograms(spectrogram_folder, prefix=base_name).unsqueeze(0).to(DEVICE)
+    aud = (
+        load_spectrograms(spectrogram_folder, prefix=base_name).unsqueeze(0).to(DEVICE)
+    )
 
     # === TEXT ===
     text_model = load_text_model()

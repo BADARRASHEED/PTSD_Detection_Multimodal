@@ -5,7 +5,6 @@ import torch.nn as nn
 class PTSDVideoTransformer(nn.Module):
     """
     Video branch: Tubelet embedding via 3D conv → pooling → 256-dim → logits.
-    Used in inference to extract video features.
     """
 
     def __init__(self, num_classes=2):
@@ -19,27 +18,29 @@ class PTSDVideoTransformer(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: (B, 3, T, H, W)
-        feat = self.conv(x)  # → (B, 256, T', H', W')
-        feat = self.pool(feat)  # → (B, 256, 1, 1, 1)
-        feat = self.flatten(feat)  # → (B, 256)
-        return self.proj(feat)  # → (B, NUM_CLASSES)
+        feat = self.conv(x)  # (B, 256, T', H', W')
+        feat = self.pool(feat)  # (B, 256, 1, 1, 1)
+        feat = self.flatten(feat)  # (B, 256)
+        return self.proj(feat)  # (B, num_classes)
 
     def extract_feature(self, x: torch.Tensor) -> torch.Tensor:
-        # Used to get 256-dim vector (before final classification)
+        # Used for feature extraction (before classifier)
         feat = self.conv(x)
         feat = self.pool(feat)
-        return self.flatten(feat)  # → (B, 256)
+        return self.flatten(feat)  # (B, 256)
 
 
 class FusionHead(nn.Module):
     """
     Fusion head with learnable weights for each modality.
-    Input: concatenated video, text, audio embeddings → output logits.
+    Concatenates [video, text, audio] embeddings and applies normalization, dropout, and final classifier.
     """
 
     def __init__(self, nc=2):
         super().__init__()
-        self.wv = self.wa = self.wt = nn.Parameter(torch.ones(1))
+        self.wv = nn.Parameter(torch.ones(1))
+        self.wt = nn.Parameter(torch.ones(1))
+        self.wa = nn.Parameter(torch.ones(1))
         self.norm = nn.LayerNorm(nc * 3)
         self.dp = nn.Dropout(0.3)
         self.fc = nn.Linear(nc * 3, nc)
@@ -61,7 +62,7 @@ class LateFusion(nn.Module):
         super().__init__()
         self.vm = vm  # PTSDVideoTransformer
         self.tm = tm  # text model
-        self.am = am  # EfficientNetV2
+        self.am = am  # EfficientNetV2-L
         self.head = FusionHead(nc)
 
     def forward(self, vids, auds, text_feat):
@@ -75,9 +76,7 @@ class LateFusion(nn.Module):
         a = fl.view(B, T, -1).mean(dim=1)  # (B, nc)
 
         # === Text ===
-        # ``text_feat`` is expected to be a tensor of shape ``(B, nc)`` already
-        # computed by the text model.
-        t = text_feat
+        t = text_feat  # (B, nc)
 
         # === Fusion ===
         return self.head(v, t, a)  # (B, nc)
