@@ -83,3 +83,11 @@ The backend relies on a PostgreSQL database. After installing PostgreSQL, create
    ```
 
 When the backend starts for the first time, it will automatically create the required tables.
+
+## Temporary Data Handling
+
+During prediction, the `process_video` function writes intermediate files to
+`temp/audio`, `temp/frames`, `temp/spectrogram_patches`, and `temp/transcripts`.
+At the start of each run these directories are deleted with
+`shutil.rmtree(..., ignore_errors=True)` and then recreated using
+`os.makedirs` to ensure a clean workspace.
