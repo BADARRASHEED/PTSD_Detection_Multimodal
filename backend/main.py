@@ -96,13 +96,11 @@ async def predict_ptsd(video: UploadFile = File(...)):
     os.makedirs(temp_dir, exist_ok=True)
     video_path = os.path.join(temp_dir, video.filename)
 
-    # Folders created during processing
-    subdirs = [
-        os.path.join(temp_dir, "audio"),
-        os.path.join(temp_dir, "frames"),
-        os.path.join(temp_dir, "spectrogram_patches"),
-        os.path.join(temp_dir, "transcripts"),
-    ]
+    base_name = os.path.splitext(video.filename)[0]
+    base_dir = os.path.join(temp_dir, base_name)
+
+    # Folder created during processing
+    subdirs = [base_dir]
 
     try:
         # Save uploaded video file
