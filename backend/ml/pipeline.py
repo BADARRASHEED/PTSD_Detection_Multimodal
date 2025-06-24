@@ -19,10 +19,16 @@ def process_video(video_path: str) -> str:
     # === FOLDER SETUP ===
     base_name = os.path.splitext(os.path.basename(video_path))[0]
 
-    audio_dir = "temp/audio"
-    frame_dir = "temp/frames"
-    spec_dir = "temp/spectrogram_patches"
-    text_dir = "temp/transcripts"
+    # create a unique subdirectory for this video
+    base_dir = os.path.join("temp", base_name)
+    audio_dir = os.path.join(base_dir, "audio")
+    frame_dir = os.path.join(base_dir, "frames")
+    spec_dir = os.path.join(base_dir, "spectrogram_patches")
+    text_dir = os.path.join(base_dir, "transcripts")
+
+    # ensure base directory exists; the utility functions will create
+    # their respective subfolders as needed
+    os.makedirs(base_dir, exist_ok=True)
 
     # === STEP 1: Extract Audio ===
     audio_path = extract_audio_from_video(video_path, audio_dir)
