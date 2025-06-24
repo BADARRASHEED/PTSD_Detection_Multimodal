@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import os
 import shutil
+import asyncio
 
 from database import *
 from crud import *
@@ -107,8 +108,8 @@ async def predict_ptsd(video: UploadFile = File(...)):
         with open(video_path, "wb") as f:
             shutil.copyfileobj(video.file, f)
 
-        # Run the multimodal inference pipeline
-        result = process_video(video_path)  # "PTSD" or "NO PTSD"
+        # Run the multimodal inference pipeline in a worker thread
+        result = await asyncio.to_thread(process_video, video_path)  # "PTSD" or "NO PTSD"
 
         return {"prediction": result}
     except Exception as e:
