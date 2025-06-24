@@ -16,7 +16,7 @@ app = FastAPI()
 # === CORS SETUP: Allow frontend-backend communication ===
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,7 +36,7 @@ def get_db():
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the PTSD Multimodal API!"}
+    return {"message": "Welcome to the PTSD Multimodal API! 🧠"}
 
 
 # === Doctor Management Endpoints ===
@@ -114,7 +114,9 @@ async def predict_ptsd(video: UploadFile = File(...)):
             shutil.copyfileobj(video.file, f)
 
         # Run the multimodal inference pipeline in a worker thread
-        result = await asyncio.to_thread(process_video, video_path)  # "PTSD" or "NO PTSD"
+        result = await asyncio.to_thread(
+            process_video, video_path
+        )  # "PTSD" or "NO PTSD"
 
         return {"prediction": result}
     except Exception as e:

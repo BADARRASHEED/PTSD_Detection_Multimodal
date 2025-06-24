@@ -10,14 +10,16 @@ load_dotenv()
 # Fetch DB URL from environment
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 if not SQLALCHEMY_DATABASE_URL:
-    raise RuntimeError(
-        "DATABASE_URL environment variable is not set"
-    )
+    raise RuntimeError("DATABASE_URL environment variable is not set")
 
 # SQLite: check_same_thread=False ONLY for SQLite!
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
+    connect_args=(
+        {"check_same_thread": False}
+        if SQLALCHEMY_DATABASE_URL.startswith("sqlite")
+        else {}
+    ),
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

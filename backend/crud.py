@@ -11,7 +11,7 @@ def create_doc(db: Session, doc: DoctorCreate):
         doc_email=doc.doc_email,
         doc_username=doc.doc_username,
         doc_phone=doc.doc_phone,
-        doc_password=doc.doc_password
+        doc_password=doc.doc_password,
     )
     db.add(db_doc)
     db.commit()

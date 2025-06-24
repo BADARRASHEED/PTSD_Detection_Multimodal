@@ -99,7 +99,9 @@ export default function DoctorDashboard() {
         setPrediction(null);
         setElapsedTime(null);
         if (videoRef.current?.srcObject instanceof MediaStream) {
-          videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+          videoRef.current.srcObject
+            .getTracks()
+            .forEach((track) => track.stop());
           videoRef.current.srcObject = null;
         }
       };
