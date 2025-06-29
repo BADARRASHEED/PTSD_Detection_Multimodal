@@ -99,23 +99,16 @@ export default function DoctorDashboard() {
         videoRef.current.srcObject = stream;
       }
       const mediaRecorder = new MediaRecorder(stream);
-      chunks.current = [];
+      const localChunks: Blob[] = [];
+      chunks.current = localChunks;
       mediaRecorder.ondataavailable = (e) => {
-        chunks.current.push(e.data);
+        localChunks.push(e.data);
       };
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks.current, { type: "video/webm" });
+        const blob = new Blob(localChunks, { type: "video/webm" });
         setRecordedBlob(blob);
         setPrediction(null);
         setElapsedTime(null);
-        chunks.current = [];
-        if (videoRef.current?.srcObject instanceof MediaStream) {
-          videoRef.current.srcObject
-            .getTracks()
-            .forEach((track) => track.stop());
-          videoRef.current.srcObject = null;
-        }
-        mediaRecorderRef.current = null;
       };
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
@@ -139,6 +132,14 @@ export default function DoctorDashboard() {
       timeoutRef.current = null;
     }
     mediaRecorderRef.current?.stop();
+    mediaRecorderRef.current = null;
+    chunks.current = [];
+    if (videoRef.current?.srcObject instanceof MediaStream) {
+      videoRef.current.srcObject
+        .getTracks()
+        .forEach((t) => t.stop());
+      videoRef.current.srcObject = null;
+    }
     setIsRecording(false);
     if (reset) setRecordedBlob(null);
   };
