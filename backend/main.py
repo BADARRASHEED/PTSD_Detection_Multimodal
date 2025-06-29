@@ -111,7 +111,7 @@ async def predict_ptsd(video: UploadFile = File(...)):
 
             # Run the multimodal inference pipeline in a worker thread
             result = await asyncio.to_thread(
-                process_video, video_path
+                process_video, video_path, tmp_dir
             )  # "PTSD" or "NO PTSD"
 
             return {"prediction": result}

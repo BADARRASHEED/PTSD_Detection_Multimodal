@@ -2,17 +2,6 @@ import os
 import whisper
 import re
 
-# Lazy-load the Whisper model to avoid expensive initialization on import
-_whisper_model = None
-
-
-def get_whisper_model():
-    """Return a cached instance of the Whisper model."""
-    global _whisper_model
-    if _whisper_model is None:
-        _whisper_model = whisper.load_model("base")
-    return _whisper_model
-
 
 def preprocess_text(text: str) -> str:
     """
@@ -42,7 +31,9 @@ def transcribe_and_save(audio_path: str, save_dir: str) -> str:
         str: Path to saved .txt transcript file
     """
     try:
-        model = get_whisper_model()
+        # Load the Whisper model lazily inside the function so that no
+        # state is shared between requests.
+        model = whisper.load_model("base")
         result = model.transcribe(audio_path)
         cleaned_text = preprocess_text(result["text"])
 
