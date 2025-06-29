@@ -169,7 +169,7 @@ export default function DoctorDashboard() {
         : fileToSend.type === "video/webm"
           ? ".webm"
           : ".mp4";
-    const uniqueName = `input_${Date.now()}${extMatch}`;
+    const uniqueName = `input_${crypto.randomUUID()}${extMatch}`;
     formData.append("video", fileToSend, uniqueName);
 
     try {
