@@ -25,6 +25,8 @@ def extract_audio_from_video(video_path: str, output_folder: str) -> str:
 
         clip = VideoFileClip(video_path)
         try:
+            if clip.audio is None:
+                raise RuntimeError(f"No audio track found in {video_path}")
             clip.audio.write_audiofile(audio_path)
         except Exception as e:
             raise RuntimeError(f"Failed to extract audio using FFmpeg: {e}") from e
