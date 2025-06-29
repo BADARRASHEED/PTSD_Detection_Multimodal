@@ -109,7 +109,8 @@ async def predict_ptsd(video: UploadFile = File(...)):
     subdirs = [base_dir]
 
     try:
-        # Save uploaded video file
+        # Save uploaded video file. Reset pointer to ensure fresh bytes
+        await video.seek(0)
         with open(video_path, "wb") as f:
             shutil.copyfileobj(video.file, f)
 
@@ -122,6 +123,7 @@ async def predict_ptsd(video: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
+        video.file.close()
         # Clean up all temp data
         if os.path.exists(video_path):
             os.remove(video_path)
