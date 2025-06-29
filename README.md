@@ -24,14 +24,9 @@ The frontend is built using **Next.js** and provides the interface for doctors a
    npm run dev
    ```
 
-4. **Run the frontend tests:**
-   ```bash
-   npm test
-   ```
-
 ## Backend
 
-The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logic of user authentication, doctor data, and integrates with the machine learning models for PTSD detection. All backend dependencies are Python-based, so Node.js is not required.
+The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logic of user authentication, doctor data, and integrates with the machine learning models for PTSD detection.
 
 ### Setup Backend
 
@@ -50,11 +45,6 @@ The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logi
    - **Linux:** `apt-get install ffmpeg`
    - **macOS:** `brew install ffmpeg`
    - **Windows:** [Download from the official site](https://ffmpeg.org/download.html) or `choco install ffmpeg`
-
-   After installation, verify that the command is available:
-   ```bash
-   ffmpeg -version
-   ```
 
 4. **Run the development server:**
    ```bash
@@ -101,19 +91,3 @@ During prediction, the `process_video` function writes intermediate files to
 At the start of each run these directories are deleted with
 `shutil.rmtree(..., ignore_errors=True)` and then recreated using
 `os.makedirs` to ensure a clean workspace.
-
-## Required Model Files
-
-Before running the backend you must provide the pretrained model weights used by
-the predictor. Place the following files inside the `backend/checkpoints/`
-directory (or adjust the paths defined in
-`backend/models/predictor.py` if you store them elsewhere):
-
-* `best_tublett_embedding_model.pth`
-* `best_effnet_vit_ensemble.pth`
-* `ensemble_model.pth`
-* `best_fusion_model.pth`
-
-These files are not included in the repository due to their size. Obtain them
-from the project authors or the original release location and download them
-before starting the backend service.
