@@ -17,6 +17,7 @@ export default function DoctorDashboard() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Loader spinner component
@@ -107,19 +108,20 @@ export default function DoctorDashboard() {
         setRecordedBlob(blob);
         setPrediction(null);
         setElapsedTime(null);
+        chunks.current = [];
         if (videoRef.current?.srcObject instanceof MediaStream) {
           videoRef.current.srcObject
             .getTracks()
             .forEach((track) => track.stop());
           videoRef.current.srcObject = null;
         }
+        mediaRecorderRef.current = null;
       };
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
-
-      setTimeout(() => {
-        if (mediaRecorderRef.current && isRecording) {
+      timeoutRef.current = setTimeout(() => {
+        if (mediaRecorderRef.current) {
           mediaRecorderRef.current.stop();
           setIsRecording(false);
           alert("Video recording time exceeded the 10 minutes limit.");
@@ -132,15 +134,13 @@ export default function DoctorDashboard() {
   };
 
   const stopRecording = (reset: boolean = false) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     mediaRecorderRef.current?.stop();
-    mediaRecorderRef.current = null;
-    chunks.current = [];
     setIsRecording(false);
     if (reset) setRecordedBlob(null);
-    if (videoRef.current?.srcObject instanceof MediaStream) {
-      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
   };
 
   const handleStopRecording = () => stopRecording();
