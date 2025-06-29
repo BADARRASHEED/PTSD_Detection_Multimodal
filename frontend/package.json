@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -35,7 +35,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
+    "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^20",
@@ -45,7 +45,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.1.4",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^30.0.0",
+    "jest": "^30.0.3",
     "jest-environment-jsdom": "^30.0.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
