@@ -24,6 +24,11 @@ The frontend is built using **Next.js** and provides the interface for doctors a
    npm run dev
    ```
 
+4. **Run the frontend tests:**
+   ```bash
+   npm test
+   ```
+
 ## Backend
 
 The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logic of user authentication, doctor data, and integrates with the machine learning models for PTSD detection. All backend dependencies are Python-based, so Node.js is not required.
