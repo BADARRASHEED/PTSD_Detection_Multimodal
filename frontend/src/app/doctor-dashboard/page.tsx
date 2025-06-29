@@ -158,7 +158,9 @@ export default function DoctorDashboard() {
     const extMatch =
       fileToSend instanceof File && fileToSend.name.includes(".")
         ? fileToSend.name.substring(fileToSend.name.lastIndexOf("."))
-        : ".mp4";
+        : fileToSend.type === "video/webm"
+          ? ".webm"
+          : ".mp4";
     const uniqueName = `input_${Date.now()}${extMatch}`;
     formData.append("video", fileToSend, uniqueName);
 
