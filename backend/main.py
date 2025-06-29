@@ -123,7 +123,8 @@ async def predict_ptsd(video: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        video.file.close()
+        # fully close UploadFile to release temporary file and avoid stale data
+        await video.close()
         # Clean up all temp data
         if os.path.exists(video_path):
             os.remove(video_path)
