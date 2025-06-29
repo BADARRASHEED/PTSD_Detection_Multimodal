@@ -37,7 +37,10 @@ def process_video(video_path: str) -> str:
         os.makedirs(d, exist_ok=True)
 
     # === STEP 1: Extract Audio ===
-    audio_path = extract_audio_from_video(video_path, audio_dir)
+    try:
+        audio_path = extract_audio_from_video(video_path, audio_dir)
+    except Exception as e:
+        raise RuntimeError(f"Audio extraction failed for {video_path}: {e}") from e
     if not audio_path:
         raise RuntimeError(f"Audio extraction failed for {video_path}")
 
