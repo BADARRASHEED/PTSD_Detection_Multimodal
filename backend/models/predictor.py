@@ -174,5 +174,4 @@ def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text, base
     return CLASS_NAMES[pred]
 
 
-# Initialize models on module import (optional, for warm start)
-load_fusion_model()
+# Models will be lazily loaded by ``predict_fusion_model``
