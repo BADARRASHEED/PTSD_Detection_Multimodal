@@ -97,7 +97,10 @@ def load_fusion_model():
     model = LateFusion(vm, tm, am, NUM_CLASSES)
     fusion_ckpt = torch.load(CKPT_FUSION, map_location=DEVICE, weights_only=False)
     model.load_state_dict(fusion_ckpt, strict=False)
-    return model.to(DEVICE).eval()
+    model = model.to(DEVICE).eval()
+    # Ensure the text model is on the correct device and in eval mode
+    model.tm = model.tm.to(DEVICE).eval()
+    return model
 
 
 def load_video_frames(frame_folder):
@@ -136,6 +139,8 @@ def load_spectrograms(spec_folder, prefix):
 
 def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text, base_name):
     model = load_fusion_model()
+    # Ensure the text model resides on the proper device and is in eval mode
+    model.tm = model.tm.to(DEVICE).eval()
 
     # === VIDEO ===
     vid = load_video_frames(frame_folder).unsqueeze(0).to(DEVICE)
@@ -146,8 +151,9 @@ def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text, base
     )
 
     # === TEXT ===
-    text_model = load_text_model()
-    text_feat = text_model([transcript_text])  # Pass as a list
+    # ``model`` already contains the text submodel (``model.tm``).
+    # Use it directly instead of loading another instance.
+    text_feat = model.tm([transcript_text])  # Pass as a list
 
     # === Predict ===
     with torch.no_grad():
