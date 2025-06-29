@@ -69,6 +69,9 @@ export default function DoctorDashboard() {
 
   // --- Handle Recording ---
   const handleStartRecording = async () => {
+    setRecordedBlob(null);
+    setSelectedFile(null);
+    setPrediction(null);
     if (
       typeof window === "undefined" ||
       !navigator.mediaDevices ||
