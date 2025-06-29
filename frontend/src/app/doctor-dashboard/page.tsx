@@ -72,6 +72,9 @@ export default function DoctorDashboard() {
     setRecordedBlob(null);
     setSelectedFile(null);
     setPrediction(null);
+    if (mediaRecorderRef.current) {
+      stopRecording(true);
+    }
     if (
       typeof window === "undefined" ||
       !navigator.mediaDevices ||
@@ -130,6 +133,8 @@ export default function DoctorDashboard() {
 
   const stopRecording = (reset: boolean = false) => {
     mediaRecorderRef.current?.stop();
+    mediaRecorderRef.current = null;
+    chunks.current = [];
     setIsRecording(false);
     if (reset) setRecordedBlob(null);
     if (videoRef.current?.srcObject instanceof MediaStream) {
