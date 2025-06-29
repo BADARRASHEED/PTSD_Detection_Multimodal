@@ -46,6 +46,11 @@ The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logi
    - **macOS:** `brew install ffmpeg`
    - **Windows:** [Download from the official site](https://ffmpeg.org/download.html) or `choco install ffmpeg`
 
+   After installation, verify that the command is available:
+   ```bash
+   ffmpeg -version
+   ```
+
 4. **Run the development server:**
    ```bash
    uvicorn main:app --reload
