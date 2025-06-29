@@ -2,6 +2,9 @@ import os
 import whisper
 import re
 
+# Load the Whisper model once
+model = whisper.load_model("base")
+
 
 def preprocess_text(text: str) -> str:
     """
@@ -31,9 +34,6 @@ def transcribe_and_save(audio_path: str, save_dir: str) -> str:
         str: Path to saved .txt transcript file
     """
     try:
-        # Load the Whisper model lazily inside the function so that no
-        # state is shared between requests.
-        model = whisper.load_model("base")
         result = model.transcribe(audio_path)
         cleaned_text = preprocess_text(result["text"])
 

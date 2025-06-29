@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 import os
 import shutil
 import asyncio
-import tempfile
+import uuid
 
 from database import *
 from crud import *
@@ -94,32 +94,39 @@ async def login_doctor(doc: DoctorLogin, db: Session = Depends(get_db)):
 # === PTSD Multimodal Prediction Endpoint ===
 @app.post("/predict")
 async def predict_ptsd(video: UploadFile = File(...)):
-    temp_root = "temp"
-    os.makedirs(temp_root, exist_ok=True)
+    temp_dir = "temp"
+    os.makedirs(temp_dir, exist_ok=True)
 
-    # Create a request-scoped temporary directory
-    with tempfile.TemporaryDirectory(dir=temp_root) as tmp_dir:
-        base_name = os.path.basename(tmp_dir)
-        video_ext = os.path.splitext(video.filename)[1]
-        video_path = os.path.join(tmp_dir, f"{base_name}{video_ext}")
+    # Generate a unique id so concurrent or repeated filenames do not reuse
+    # intermediate directories
+    uid = uuid.uuid4().hex
+    video_ext = os.path.splitext(video.filename)[1]
+    video_path = os.path.join(temp_dir, f"{uid}{video_ext}")
 
-        try:
-            # Save uploaded video file. Reset pointer to ensure fresh bytes
-            await video.seek(0)
-            with open(video_path, "wb") as f:
-                shutil.copyfileobj(video.file, f)
+    base_dir = os.path.join(temp_dir, uid)
 
-            # Run the multimodal inference pipeline in a worker thread
-            result = await asyncio.to_thread(
-                process_video, video_path, tmp_dir
-            )  # "PTSD" or "NO PTSD"
+    # Folder created during processing
+    subdirs = [base_dir]
 
-            return {"prediction": result}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-        finally:
-            # fully close UploadFile to release temporary file
-            await video.close()
+    try:
+        # Save uploaded video file
+        with open(video_path, "wb") as f:
+            shutil.copyfileobj(video.file, f)
+
+        # Run the multimodal inference pipeline in a worker thread
+        result = await asyncio.to_thread(
+            process_video, video_path
+        )  # "PTSD" or "NO PTSD"
+
+        return {"prediction": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # Clean up all temp data
+        if os.path.exists(video_path):
+            os.remove(video_path)
+        for d in subdirs:
+            shutil.rmtree(d, ignore_errors=True)
 
 
 """

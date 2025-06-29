@@ -1,6 +1,6 @@
 import os
 import shutil
-import subprocess
+from moviepy import VideoFileClip
 
 
 def extract_audio_from_video(video_path: str, output_folder: str) -> str:
@@ -23,27 +23,13 @@ def extract_audio_from_video(video_path: str, output_folder: str) -> str:
         video_name = os.path.splitext(os.path.basename(video_path))[0]
         audio_path = os.path.join(output_folder, f"{video_name}.wav")
 
-        cmd = [
-            "ffmpeg",
-            "-y",
-            "-i",
-            video_path,
-            "-vn",
-            "-ac",
-            "1",
-            "-ar",
-            "16000",
-            audio_path,
-        ]
-
+        clip = VideoFileClip(video_path)
         try:
-            result = subprocess.run(
-                cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-            )
-            print(result.stdout.decode())
-        except subprocess.CalledProcessError as e:
-            print(e.stdout.decode())
+            clip.audio.write_audiofile(audio_path)
+        except Exception as e:
             raise RuntimeError(f"Failed to extract audio using FFmpeg: {e}") from e
+        finally:
+            clip.close()
 
         return audio_path
 

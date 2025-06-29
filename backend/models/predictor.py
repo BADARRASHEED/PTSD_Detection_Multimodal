@@ -26,6 +26,11 @@ CKPT_FUSION = "checkpoints/best_fusion_model.pth"
 # ─── Class names ───
 CLASS_NAMES = ["NO PTSD", "PTSD"]
 
+# ─── Global caches for models ───
+_VIDEO_MODEL = None
+_AUDIO_MODEL = None
+_TEXT_MODEL = None
+_FUSION_MODEL = None
 
 # ─── Image transforms ───
 img_tf = transforms.Compose(
@@ -66,41 +71,51 @@ import numpy as np
 
 
 def load_video_model():
-    """Load the video branch model lazily."""
-    model = PTSDVideoTransformer(num_classes=NUM_CLASSES)
-    ckpt = torch.load(CKPT_VIDEO, map_location=DEVICE, weights_only=False)
-    model.load_state_dict(ckpt, strict=False)
-    return model.to(DEVICE).eval()
+    global _VIDEO_MODEL
+    if _VIDEO_MODEL is None:
+        model = PTSDVideoTransformer(num_classes=NUM_CLASSES)
+        ckpt = torch.load(CKPT_VIDEO, map_location=DEVICE, weights_only=False)
+        model.load_state_dict(ckpt, strict=False)
+        _VIDEO_MODEL = model.to(DEVICE).eval()
+    return _VIDEO_MODEL
 
 
 def load_audio_model():
-    """Load the audio branch model lazily."""
-    model = models.efficientnet_v2_l(weights=None)
-    model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, NUM_CLASSES)
-    ckpt = torch.load(CKPT_AUDIO, map_location=DEVICE, weights_only=False)
-    model.load_state_dict(ckpt, strict=False)
-    return model.to(DEVICE).eval()
+    global _AUDIO_MODEL
+    if _AUDIO_MODEL is None:
+        model = models.efficientnet_v2_l(weights=None)
+        model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, NUM_CLASSES)
+        ckpt = torch.load(CKPT_AUDIO, map_location=DEVICE, weights_only=False)
+        model.load_state_dict(ckpt, strict=False)
+        _AUDIO_MODEL = model.to(DEVICE).eval()
+    return _AUDIO_MODEL
 
 
 def load_text_model():
-    """Load the text branch model lazily."""
-    # This joblib file contains the TFIDF + LR + XGB ensemble.
-    model = TorchTextEnsembleModel(joblib_path=CKPT_TEXT, device=DEVICE, out_dim=NUM_CLASSES)
-    return model.to(DEVICE).eval()
+    global _TEXT_MODEL
+    if _TEXT_MODEL is None:
+        # NOTE: This path should point to your joblib file (ensemble with TFIDF, LR, XGB)
+        # The text model outputs a feature vector that will be fused with the
+        # video and audio branches. We only need a vector of size
+        # ``NUM_CLASSES`` for the fusion head, so set ``out_dim`` accordingly.
+        model = TorchTextEnsembleModel(
+            joblib_path=CKPT_TEXT, device=DEVICE, out_dim=NUM_CLASSES
+        )
+        _TEXT_MODEL = model.to(DEVICE).eval()
+    return _TEXT_MODEL
 
 
 def load_fusion_model():
-    """Load the full late-fusion model lazily."""
-    vm = load_video_model()
-    am = load_audio_model()
-    tm = load_text_model()
-    model = LateFusion(vm, tm, am, NUM_CLASSES)
-    fusion_ckpt = torch.load(CKPT_FUSION, map_location=DEVICE, weights_only=False)
-    model.load_state_dict(fusion_ckpt, strict=False)
-    model = model.to(DEVICE).eval()
-    # Ensure the text model is on the correct device and in eval mode
-    model.tm = model.tm.to(DEVICE).eval()
-    return model
+    global _FUSION_MODEL
+    if _FUSION_MODEL is None:
+        vm = load_video_model()
+        am = load_audio_model()
+        tm = load_text_model()
+        model = LateFusion(vm, tm, am, NUM_CLASSES)
+        fusion_ckpt = torch.load(CKPT_FUSION, map_location=DEVICE, weights_only=False)
+        model.load_state_dict(fusion_ckpt, strict=False)
+        _FUSION_MODEL = model.to(DEVICE).eval()
+    return _FUSION_MODEL
 
 
 def load_video_frames(frame_folder):
@@ -139,8 +154,6 @@ def load_spectrograms(spec_folder, prefix):
 
 def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text, base_name):
     model = load_fusion_model()
-    # Ensure the text model resides on the proper device and is in eval mode
-    model.tm = model.tm.to(DEVICE).eval()
 
     # === VIDEO ===
     vid = load_video_frames(frame_folder).unsqueeze(0).to(DEVICE)
@@ -151,9 +164,8 @@ def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text, base
     )
 
     # === TEXT ===
-    # ``model`` already contains the text submodel (``model.tm``).
-    # Use it directly instead of loading another instance.
-    text_feat = model.tm([transcript_text])  # Pass as a list
+    text_model = load_text_model()
+    text_feat = text_model([transcript_text])  # Pass as a list
 
     # === Predict ===
     with torch.no_grad():
@@ -162,3 +174,5 @@ def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text, base
     return CLASS_NAMES[pred]
 
 
+# Initialize models on module import (optional, for warm start)
+load_fusion_model()

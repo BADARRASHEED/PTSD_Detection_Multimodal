@@ -17,7 +17,6 @@ export default function DoctorDashboard() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Loader spinner component
@@ -70,12 +69,6 @@ export default function DoctorDashboard() {
 
   // --- Handle Recording ---
   const handleStartRecording = async () => {
-    setRecordedBlob(null);
-    setSelectedFile(null);
-    setPrediction(null);
-    if (mediaRecorderRef.current) {
-      stopRecording(true);
-    }
     if (
       typeof window === "undefined" ||
       !navigator.mediaDevices ||
@@ -91,30 +84,33 @@ export default function DoctorDashboard() {
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
       const mediaRecorder = new MediaRecorder(stream);
-      const localChunks: Blob[] = [];
-      chunks.current = localChunks;
+      chunks.current = [];
       mediaRecorder.ondataavailable = (e) => {
-        localChunks.push(e.data);
+        chunks.current.push(e.data);
       };
       mediaRecorder.onstop = () => {
-        const blob = new Blob(localChunks, { type: "video/webm" });
+        const blob = new Blob(chunks.current, { type: "video/webm" });
         setRecordedBlob(blob);
         setPrediction(null);
         setElapsedTime(null);
+        if (videoRef.current?.srcObject instanceof MediaStream) {
+          videoRef.current.srcObject
+            .getTracks()
+            .forEach((track) => track.stop());
+          videoRef.current.srcObject = null;
+        }
       };
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
-      timeoutRef.current = setTimeout(() => {
-        if (mediaRecorderRef.current) {
+
+      setTimeout(() => {
+        if (mediaRecorderRef.current && isRecording) {
           mediaRecorderRef.current.stop();
           setIsRecording(false);
           alert("Video recording time exceeded the 10 minutes limit.");
@@ -127,21 +123,13 @@ export default function DoctorDashboard() {
   };
 
   const stopRecording = (reset: boolean = false) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
     mediaRecorderRef.current?.stop();
-    mediaRecorderRef.current = null;
-    chunks.current = [];
-    if (videoRef.current?.srcObject instanceof MediaStream) {
-      videoRef.current.srcObject
-        .getTracks()
-        .forEach((t) => t.stop());
-      videoRef.current.srcObject = null;
-    }
     setIsRecording(false);
     if (reset) setRecordedBlob(null);
+    if (videoRef.current?.srcObject instanceof MediaStream) {
+      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
   };
 
   const handleStopRecording = () => stopRecording();
@@ -167,10 +155,8 @@ export default function DoctorDashboard() {
     const extMatch =
       fileToSend instanceof File && fileToSend.name.includes(".")
         ? fileToSend.name.substring(fileToSend.name.lastIndexOf("."))
-        : fileToSend.type === "video/webm"
-          ? ".webm"
-          : ".mp4";
-    const uniqueName = `input_${crypto.randomUUID()}${extMatch}`;
+        : ".mp4";
+    const uniqueName = `input_${Date.now()}${extMatch}`;
     formData.append("video", fileToSend, uniqueName);
 
     try {

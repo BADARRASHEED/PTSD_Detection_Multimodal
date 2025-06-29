@@ -4,7 +4,7 @@ import Hero from "./components/hero";
 import Features from "./components/features"; 
 import Working from "./components/working";
 import Benefits from "./components/benefits"; 
-import Testimonials from "./components/testimonials";
+import Testimonials from "./components/testinomals";
 import Footer from "./components/footer";
 
 const Page: React.FC = () => {
