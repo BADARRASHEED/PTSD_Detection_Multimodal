@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 import os
 import shutil
 import asyncio
-import uuid
+import tempfile
 
 from database import *
 from crud import *
@@ -94,42 +94,32 @@ async def login_doctor(doc: DoctorLogin, db: Session = Depends(get_db)):
 # === PTSD Multimodal Prediction Endpoint ===
 @app.post("/predict")
 async def predict_ptsd(video: UploadFile = File(...)):
-    temp_dir = "temp"
-    os.makedirs(temp_dir, exist_ok=True)
+    temp_root = "temp"
+    os.makedirs(temp_root, exist_ok=True)
 
-    # Generate a unique id so concurrent or repeated filenames do not reuse
-    # intermediate directories
-    uid = uuid.uuid4().hex
-    video_ext = os.path.splitext(video.filename)[1]
-    video_path = os.path.join(temp_dir, f"{uid}{video_ext}")
+    # Create a request-scoped temporary directory
+    with tempfile.TemporaryDirectory(dir=temp_root) as tmp_dir:
+        base_name = os.path.basename(tmp_dir)
+        video_ext = os.path.splitext(video.filename)[1]
+        video_path = os.path.join(tmp_dir, f"{base_name}{video_ext}")
 
-    base_dir = os.path.join(temp_dir, uid)
+        try:
+            # Save uploaded video file. Reset pointer to ensure fresh bytes
+            await video.seek(0)
+            with open(video_path, "wb") as f:
+                shutil.copyfileobj(video.file, f)
 
-    # Folder created during processing
-    subdirs = [base_dir]
+            # Run the multimodal inference pipeline in a worker thread
+            result = await asyncio.to_thread(
+                process_video, video_path
+            )  # "PTSD" or "NO PTSD"
 
-    try:
-        # Save uploaded video file. Reset pointer to ensure fresh bytes
-        await video.seek(0)
-        with open(video_path, "wb") as f:
-            shutil.copyfileobj(video.file, f)
-
-        # Run the multimodal inference pipeline in a worker thread
-        result = await asyncio.to_thread(
-            process_video, video_path
-        )  # "PTSD" or "NO PTSD"
-
-        return {"prediction": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        # fully close UploadFile to release temporary file and avoid stale data
-        await video.close()
-        # Clean up all temp data
-        if os.path.exists(video_path):
-            os.remove(video_path)
-        for d in subdirs:
-            shutil.rmtree(d, ignore_errors=True)
+            return {"prediction": result}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            # fully close UploadFile to release temporary file
+            await video.close()
 
 
 """
