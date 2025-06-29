@@ -96,3 +96,19 @@ During prediction, the `process_video` function writes intermediate files to
 At the start of each run these directories are deleted with
 `shutil.rmtree(..., ignore_errors=True)` and then recreated using
 `os.makedirs` to ensure a clean workspace.
+
+## Required Model Files
+
+Before running the backend you must provide the pretrained model weights used by
+the predictor. Place the following files inside the `backend/checkpoints/`
+directory (or adjust the paths defined in
+`backend/models/predictor.py` if you store them elsewhere):
+
+* `best_tublett_embedding_model.pth`
+* `best_effnet_vit_ensemble.pth`
+* `ensemble_model.pth`
+* `best_fusion_model.pth`
+
+These files are not included in the repository due to their size. Obtain them
+from the project authors or the original release location and download them
+before starting the backend service.
