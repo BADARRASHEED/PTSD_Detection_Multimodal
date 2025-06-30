@@ -96,3 +96,9 @@ During prediction, the `process_video` function writes intermediate files to
 At the start of each run these directories are deleted with
 `shutil.rmtree(..., ignore_errors=True)` and then recreated using
 `os.makedirs` to ensure a clean workspace.
+
+## Customizing the Favicon
+
+To change the icon displayed in the browser tab, replace
+`frontend/src/app/favicon.ico` with your own `.ico` file. Next.js will
+automatically use this icon for all pages.

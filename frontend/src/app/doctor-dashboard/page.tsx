@@ -3,6 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BASE_URL } from "../utils/api";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Doctor Dashboard",
+};
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
 const MAX_VIDEO_DURATION = 10 * 60 * 1000; // 10 minutes
