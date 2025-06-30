@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation"; // useRouter for navigation
 import Link from "next/link";
 import Nav from "../components/nav";
 import Footer from "../components/footer";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Admin Login",
+};
 
 export default function AdminLogin() {
   const router = useRouter(); // Initialize router for navigation
@@ -67,6 +72,7 @@ export default function AdminLogin() {
 
       if (typeof window !== "undefined") {
         localStorage.setItem("adminLoggedIn", "true");
+        localStorage.setItem("adminUsername", formData.username);
       }
 
       // Redirect to admin dashboard

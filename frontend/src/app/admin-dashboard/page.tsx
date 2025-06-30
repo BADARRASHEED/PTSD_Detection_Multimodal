@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { z } from "zod";
 import { BASE_URL } from "../utils/api";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Admin Dashboard",
+};
 
 //Doctors interface
 interface Doctor {
@@ -42,6 +47,7 @@ export default function ManageDoctors() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [adminName, setAdminName] = useState("Admin");
 
   // Error state for form fields
   const [errors, setErrors] = useState<Partial<Record<keyof Doctor, string>>>(
@@ -54,6 +60,10 @@ export default function ManageDoctors() {
       const loggedIn = localStorage.getItem("adminLoggedIn");
       if (!loggedIn) {
         router.replace("/admin-login");
+      }
+      const name = localStorage.getItem("adminUsername");
+      if (name) {
+        setAdminName(name);
       }
     }
   }, [router]);
@@ -138,6 +148,7 @@ export default function ManageDoctors() {
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("adminLoggedIn");
+      localStorage.removeItem("adminUsername");
       window.location.href = "/admin-login";
     }
   };
@@ -339,7 +350,7 @@ export default function ManageDoctors() {
             alt="Doctor Profile"
             className="w-20 h-20 rounded-full mb-4"
           />
-          <h2 className="text-xl font-bold">Shamama Tarif</h2>
+          <h2 className="text-xl font-bold">{adminName}</h2>
           <p className="text-sm">Admin</p>
         </div>
         <ul className="flex flex-col gap-2 px-4">
