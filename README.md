@@ -42,9 +42,15 @@ The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logi
    ```
 
 3. **Install FFmpeg:** Ensure FFmpeg is installed and accessible in your `PATH`.
-   - **Linux:** `apt-get install ffmpeg`
-   - **macOS:** `brew install ffmpeg`
-   - **Windows:** [Download from the official site](https://ffmpeg.org/download.html) or `choco install ffmpeg`
+- **Linux:** `apt-get install ffmpeg`
+- **macOS:** `brew install ffmpeg`
+- **Windows:** [Download from the official site](https://ffmpeg.org/download.html) or `choco install ffmpeg`
+
+To verify that FFmpeg is installed correctly, run:
+```bash
+ffmpeg -version
+```
+If you see a "command not found" error, FFmpeg is not on your system `PATH`.
 
 4. **Run the development server:**
    ```bash
