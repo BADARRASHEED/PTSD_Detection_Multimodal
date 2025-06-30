@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { BASE_URL } from "../utils/api";
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
 const MAX_VIDEO_DURATION = 10 * 60 * 1000; // 10 minutes
 
 export default function DoctorDashboard() {
+  const router = useRouter();
   const [choice, setChoice] = useState<"upload" | "record" | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -18,6 +20,16 @@ export default function DoctorDashboard() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const loggedIn = localStorage.getItem("doctorLoggedIn");
+      if (!loggedIn) {
+        router.replace("/login");
+      }
+    }
+  }, [router]);
 
   // Loader spinner component
   function Loader() {
@@ -194,7 +206,12 @@ export default function DoctorDashboard() {
     if (confirm) handleLogout();
     setShowLogoutModal(false);
   };
-  const handleLogout = () => (window.location.href = "/login");
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("doctorLoggedIn");
+      window.location.href = "/login";
+    }
+  };
 
   useEffect(() => {
     return () => stopRecording();

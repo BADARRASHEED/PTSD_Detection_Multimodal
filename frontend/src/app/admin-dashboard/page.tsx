@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { z } from "zod";
 import { BASE_URL } from "../utils/api";
@@ -29,6 +30,7 @@ const doctorSchema = z.object({
 });
 
 export default function ManageDoctors() {
+  const router = useRouter();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [newDoctor, setNewDoctor] = useState<Partial<Doctor>>({});
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
@@ -45,6 +47,16 @@ export default function ManageDoctors() {
   const [errors, setErrors] = useState<Partial<Record<keyof Doctor, string>>>(
     {}
   );
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const loggedIn = localStorage.getItem("adminLoggedIn");
+      if (!loggedIn) {
+        router.replace("/admin-login");
+      }
+    }
+  }, [router]);
 
   {
     /* Function to open the modal */
@@ -124,7 +136,10 @@ export default function ManageDoctors() {
     /* Function to logout */
   }
   const handleLogout = () => {
-    window.location.href = "/login";
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("adminLoggedIn");
+      window.location.href = "/admin-login";
+    }
   };
 
   {
