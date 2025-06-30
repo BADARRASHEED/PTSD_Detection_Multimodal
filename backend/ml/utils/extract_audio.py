@@ -1,5 +1,5 @@
 import os
-from moviepy import VideoFileClip
+from moviepy.editor import VideoFileClip
 
 
 def extract_audio_from_video(video_path: str, output_folder: str) -> str:
@@ -19,9 +19,8 @@ def extract_audio_from_video(video_path: str, output_folder: str) -> str:
         video_name = os.path.splitext(os.path.basename(video_path))[0]
         audio_path = os.path.join(output_folder, f"{video_name}.wav")
 
-        clip = VideoFileClip(video_path)
-        clip.audio.write_audiofile(audio_path)
-        clip.close()
+        with VideoFileClip(video_path) as clip:
+            clip.audio.write_audiofile(audio_path)
 
         return audio_path
 
