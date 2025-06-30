@@ -1,4 +1,9 @@
 import React from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Home",
+};
 import Navbar from "./components/navbar";
 import Hero from "./components/hero"; 
 import Features from "./components/features"; 

@@ -3,6 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BASE_URL } from "../utils/api";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Doctor Dashboard",
+};
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
 const MAX_VIDEO_DURATION = 10 * 60 * 1000; // 10 minutes
@@ -20,6 +25,7 @@ export default function DoctorDashboard() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [doctorName, setDoctorName] = useState("Dr. User");
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -27,6 +33,10 @@ export default function DoctorDashboard() {
       const loggedIn = localStorage.getItem("doctorLoggedIn");
       if (!loggedIn) {
         router.replace("/login");
+      }
+      const name = localStorage.getItem("doctorUsername");
+      if (name) {
+        setDoctorName(name);
       }
     }
   }, [router]);
@@ -209,6 +219,7 @@ export default function DoctorDashboard() {
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("doctorLoggedIn");
+      localStorage.removeItem("doctorUsername");
       window.location.href = "/login";
     }
   };
@@ -282,7 +293,7 @@ export default function DoctorDashboard() {
       {/* Sidebar */}
       <aside className="w-64 bg-teal-700 text-white flex flex-col">
         <div className="flex flex-col items-center mb-8 p-4 border-b border-teal-800">
-          <h2 className="text-xl font-bold">Dr. John Doe</h2>
+          <h2 className="text-xl font-bold">Dr. {doctorName}</h2>
           <p className="text-sm">Psychologist</p>
         </div>
         <ul className="flex flex-col gap-2 px-4">
