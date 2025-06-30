@@ -2,11 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Contact Admin",
-};
 
 export default function ContactAdmin() {
   const [formData, setFormData] = useState({

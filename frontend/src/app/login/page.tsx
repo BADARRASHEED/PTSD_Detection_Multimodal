@@ -6,11 +6,6 @@ import Link from "next/link";
 import Nav from "../components/nav";
 import Footer from "../components/footer";
 import { BASE_URL } from "../utils/api";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Doctor Login",
-};
 
 export default function DoctorLogin() {
   const router = useRouter(); // Initialize router for navigation
