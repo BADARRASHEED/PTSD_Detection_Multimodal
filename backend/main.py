@@ -97,32 +97,29 @@ async def predict_ptsd(video: UploadFile = File(...)):
     temp_dir = "temp"
     os.makedirs(temp_dir, exist_ok=True)
 
-    # Generate a unique id so concurrent or repeated filenames do not reuse
-    # intermediate directories
+    # Generate a unique ID so concurrent or repeated filenames do not reuse intermediate directories
     uid = uuid.uuid4().hex
     video_ext = os.path.splitext(video.filename)[1]
     video_path = os.path.join(temp_dir, f"{uid}{video_ext}")
 
     base_dir = os.path.join(temp_dir, uid)
-
-    # Folder created during processing
-    subdirs = [base_dir]
+    subdirs = [base_dir]  # will hold the temporary folder for this request
 
     try:
-        # Save uploaded video file
+        # Save uploaded video file to a unique path
         with open(video_path, "wb") as f:
             shutil.copyfileobj(video.file, f)
 
-        # Run the multimodal inference pipeline in a worker thread
+        # Run the multimodal inference pipeline in a background thread
         result = await asyncio.to_thread(
             process_video, video_path
-        )  # "PTSD" or "NO PTSD"
+        )  # returns "PTSD" or "NO PTSD"
 
         return {"prediction": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        # Clean up all temp data
+        # Clean up all temp data (video file and its folder)
         if os.path.exists(video_path):
             os.remove(video_path)
         for d in subdirs:

@@ -20,18 +20,17 @@ def process_video(video_path: str) -> str:
     # === FOLDER SETUP ===
     base_name = os.path.splitext(os.path.basename(video_path))[0]
 
-    # create a unique subdirectory for this video
+    # Create a unique subdirectory for this video’s intermediate files
     base_dir = os.path.join("temp", base_name)
     audio_dir = os.path.join(base_dir, "audio")
     frame_dir = os.path.join(base_dir, "frames")
     spec_dir = os.path.join(base_dir, "spectrogram_patches")
     text_dir = os.path.join(base_dir, "transcripts")
 
-    # ensure base directory exists; the utility functions will create
-    # their respective subfolders as needed
+    # Ensure base directory exists; subfolders will be created as needed
     os.makedirs(base_dir, exist_ok=True)
 
-    # Recreate temp folders before processing
+    # Recreate temp subfolders to start fresh for this video
     for d in [audio_dir, frame_dir, spec_dir, text_dir]:
         shutil.rmtree(d, ignore_errors=True)
         os.makedirs(d, exist_ok=True)
