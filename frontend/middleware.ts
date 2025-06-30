@@ -9,7 +9,9 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Only run checks for the protected routes
-  const isProtected = pathname.startsWith('/doctor-dashboard') || pathname.startsWith('/admin-dashboard')
+  const isProtected =
+    pathname.startsWith('/doctor-dashboard') ||
+    pathname.startsWith('/admin-dashboard')
 
   if (isProtected) {
     const token = request.cookies.get('authToken')
