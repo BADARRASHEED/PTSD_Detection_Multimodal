@@ -91,9 +91,7 @@ export default function DoctorDashboard() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: "video/webm;codecs=vp8,opus",
-      });
+      const mediaRecorder = new MediaRecorder(stream);
       chunks.current = [];
       mediaRecorder.ondataavailable = (e) => {
         chunks.current.push(e.data);
@@ -160,7 +158,9 @@ export default function DoctorDashboard() {
     const extMatch =
       fileToSend instanceof File && fileToSend.name.includes(".")
         ? fileToSend.name.substring(fileToSend.name.lastIndexOf("."))
-        : ".webm";
+        : fileToSend.type === "video/webm"
+          ? ".webm"
+          : ".mp4";
     const uniqueName = `input_${Date.now()}${extMatch}`;
     formData.append("video", fileToSend, uniqueName);
 

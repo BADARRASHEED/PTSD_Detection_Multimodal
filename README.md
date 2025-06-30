@@ -26,7 +26,7 @@ The frontend is built using **Next.js** and provides the interface for doctors a
 
 ## Backend
 
-The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logic of user authentication, doctor data, and integrates with the machine learning models for PTSD detection.
+The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logic of user authentication, doctor data, and integrates with the machine learning models for PTSD detection. All backend dependencies are Python-based, so Node.js is not required.
 
 ### Setup Backend
 
@@ -42,15 +42,14 @@ The backend is built with **FastAPI** and **SQLAlchemy**, which manages the logi
    ```
 
 3. **Install FFmpeg:** Ensure FFmpeg is installed and accessible in your `PATH`.
-- **Linux:** `apt-get install ffmpeg`
-- **macOS:** `brew install ffmpeg`
-- **Windows:** [Download from the official site](https://ffmpeg.org/download.html) or `choco install ffmpeg`
+   - **Linux:** `apt-get install ffmpeg`
+   - **macOS:** `brew install ffmpeg`
+   - **Windows:** [Download from the official site](https://ffmpeg.org/download.html) or `choco install ffmpeg`
 
-To verify that FFmpeg is installed correctly, run:
-```bash
-ffmpeg -version
-```
-If you see a "command not found" error, FFmpeg is not on your system `PATH`.
+   After installation, verify that the command is available:
+   ```bash
+   ffmpeg -version
+   ```
 
 4. **Run the development server:**
    ```bash

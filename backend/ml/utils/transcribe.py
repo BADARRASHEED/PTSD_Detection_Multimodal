@@ -2,6 +2,9 @@ import os
 import whisper
 import re
 
+# Load the Whisper model once
+model = whisper.load_model("base")
+
 
 def preprocess_text(text: str) -> str:
     """
@@ -30,10 +33,7 @@ def transcribe_and_save(audio_path: str, save_dir: str) -> str:
     Returns:
         str: Path to saved .txt transcript file
     """
-    model = None
     try:
-        # Load Whisper model for this request and transcribe audio
-        model = whisper.load_model("base")
         result = model.transcribe(audio_path)
         cleaned_text = preprocess_text(result["text"])
 
@@ -49,13 +49,24 @@ def transcribe_and_save(audio_path: str, save_dir: str) -> str:
     except Exception as e:
         msg = str(e).lower()
         if isinstance(e, FileNotFoundError) or "ffmpeg" in msg or "ffprobe" in msg:
-            print(
-                "FFmpeg not found – please install FFmpeg and ensure it’s on your PATH."
-            )
+            print("FFmpeg not found – please install FFmpeg and ensure it’s on your PATH.")
         print(f"❌ Error transcribing {audio_path}: {e}")
         raise
 
-    finally:
-        # Clean up Whisper model to free memory
-        if model is not None:
-            del model
+
+"""
+== Example usage ===
+
+from ml.utils.transcribe import transcribe_and_save
+
+transcript_path = transcribe_and_save(
+    audio_path="temp/audio/uploaded_video.wav",
+    save_dir="temp/transcripts"
+)
+
+# Optional: read transcript string from saved file
+with open(transcript_path, "r", encoding="utf-8") as f:
+    transcript = f.read()
+
+    
+"""

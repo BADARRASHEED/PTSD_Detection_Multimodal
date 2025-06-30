@@ -20,23 +20,27 @@ def process_video(video_path: str) -> str:
     # === FOLDER SETUP ===
     base_name = os.path.splitext(os.path.basename(video_path))[0]
 
-    # Create a unique subdirectory for this video’s intermediate files
+    # create a unique subdirectory for this video
     base_dir = os.path.join("temp", base_name)
     audio_dir = os.path.join(base_dir, "audio")
     frame_dir = os.path.join(base_dir, "frames")
     spec_dir = os.path.join(base_dir, "spectrogram_patches")
     text_dir = os.path.join(base_dir, "transcripts")
 
-    # Ensure base directory exists; subfolders will be created as needed
+    # ensure base directory exists; the utility functions will create
+    # their respective subfolders as needed
     os.makedirs(base_dir, exist_ok=True)
 
-    # Recreate temp subfolders to start fresh for this video
+    # Recreate temp folders before processing
     for d in [audio_dir, frame_dir, spec_dir, text_dir]:
         shutil.rmtree(d, ignore_errors=True)
         os.makedirs(d, exist_ok=True)
 
     # === STEP 1: Extract Audio ===
-    audio_path = extract_audio_from_video(video_path, audio_dir)
+    try:
+        audio_path = extract_audio_from_video(video_path, audio_dir)
+    except Exception as e:
+        raise RuntimeError(f"Audio extraction failed for {video_path}: {e}") from e
     if not audio_path:
         raise RuntimeError(f"Audio extraction failed for {video_path}")
 

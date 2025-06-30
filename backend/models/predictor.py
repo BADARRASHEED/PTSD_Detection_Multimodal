@@ -17,7 +17,7 @@ SEQ_LEN = 50
 MAX_TEXT_LEN = 128
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ─── Checkpoint paths ───
+# ─── Checkpoint paths (you can modify if stored elsewhere) ───
 CKPT_VIDEO = "checkpoints/best_tublett_embedding_model.pth"
 CKPT_AUDIO = "checkpoints/best_effnet_vit_ensemble.pth"
 CKPT_TEXT = "checkpoints/ensemble_model.pth"
@@ -25,6 +25,12 @@ CKPT_FUSION = "checkpoints/best_fusion_model.pth"
 
 # ─── Class names ───
 CLASS_NAMES = ["NO PTSD", "PTSD"]
+
+# ─── Global caches for models ───
+_VIDEO_MODEL = None
+_AUDIO_MODEL = None
+_TEXT_MODEL = None
+_FUSION_MODEL = None
 
 # ─── Image transforms ───
 img_tf = transforms.Compose(
@@ -36,6 +42,7 @@ img_tf = transforms.Compose(
 )
 
 
+# ─── TorchTextEnsembleModel definition (copied from your notebook, slightly cleaned) ───
 class TorchTextEnsembleModel(nn.Module):
     def __init__(self, joblib_path, device="cpu", out_dim=128):
         super().__init__()
@@ -57,46 +64,58 @@ class TorchTextEnsembleModel(nn.Module):
                 meta_probs, dtype=torch.float32, device=self.device
             ).unsqueeze(1)
         out = self.text_proj(out)
-        return out  # [B, out_dim]
+        return out  # [B, 128]
 
 
 import numpy as np
 
 
 def load_video_model():
-    model = PTSDVideoTransformer(num_classes=NUM_CLASSES)
-    ckpt = torch.load(CKPT_VIDEO, map_location=DEVICE, weights_only=False)
-    model.load_state_dict(ckpt, strict=False)
-    return model.to(DEVICE).eval()
+    global _VIDEO_MODEL
+    if _VIDEO_MODEL is None:
+        model = PTSDVideoTransformer(num_classes=NUM_CLASSES)
+        ckpt = torch.load(CKPT_VIDEO, map_location=DEVICE, weights_only=False)
+        model.load_state_dict(ckpt, strict=False)
+        _VIDEO_MODEL = model.to(DEVICE).eval()
+    return _VIDEO_MODEL
 
 
 def load_audio_model():
-    model = models.efficientnet_v2_l(weights=None)
-    model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, NUM_CLASSES)
-    ckpt = torch.load(CKPT_AUDIO, map_location=DEVICE, weights_only=False)
-    model.load_state_dict(ckpt, strict=False)
-    return model.to(DEVICE).eval()
+    global _AUDIO_MODEL
+    if _AUDIO_MODEL is None:
+        model = models.efficientnet_v2_l(weights=None)
+        model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, NUM_CLASSES)
+        ckpt = torch.load(CKPT_AUDIO, map_location=DEVICE, weights_only=False)
+        model.load_state_dict(ckpt, strict=False)
+        _AUDIO_MODEL = model.to(DEVICE).eval()
+    return _AUDIO_MODEL
 
 
 def load_text_model():
-    # NOTE: This path should point to your joblib file (ensemble with TFIDF, LR, XGB)
-    # The text model outputs a feature vector that will be fused with the
-    # video and audio branches. We only need a vector of size
-    # ``NUM_CLASSES`` for the fusion head, so set ``out_dim`` accordingly.
-    model = TorchTextEnsembleModel(
-        joblib_path=CKPT_TEXT, device=DEVICE, out_dim=NUM_CLASSES
-    )
-    return model.to(DEVICE).eval()
+    global _TEXT_MODEL
+    if _TEXT_MODEL is None:
+        # NOTE: This path should point to your joblib file (ensemble with TFIDF, LR, XGB)
+        # The text model outputs a feature vector that will be fused with the
+        # video and audio branches. We only need a vector of size
+        # ``NUM_CLASSES`` for the fusion head, so set ``out_dim`` accordingly.
+        model = TorchTextEnsembleModel(
+            joblib_path=CKPT_TEXT, device=DEVICE, out_dim=NUM_CLASSES
+        )
+        _TEXT_MODEL = model.to(DEVICE).eval()
+    return _TEXT_MODEL
 
 
 def load_fusion_model():
-    vm = load_video_model()
-    am = load_audio_model()
-    tm = load_text_model()
-    model = LateFusion(vm, tm, am, NUM_CLASSES)
-    fusion_ckpt = torch.load(CKPT_FUSION, map_location=DEVICE, weights_only=False)
-    model.load_state_dict(fusion_ckpt, strict=False)
-    return model.to(DEVICE).eval()
+    global _FUSION_MODEL
+    if _FUSION_MODEL is None:
+        vm = load_video_model()
+        am = load_audio_model()
+        tm = load_text_model()
+        model = LateFusion(vm, tm, am, NUM_CLASSES)
+        fusion_ckpt = torch.load(CKPT_FUSION, map_location=DEVICE, weights_only=False)
+        model.load_state_dict(fusion_ckpt, strict=False)
+        _FUSION_MODEL = model.to(DEVICE).eval()
+    return _FUSION_MODEL
 
 
 def load_video_frames(frame_folder):
@@ -134,7 +153,7 @@ def load_spectrograms(spec_folder, prefix):
 
 
 def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text, base_name):
-    fusion_model = load_fusion_model()
+    model = load_fusion_model()
 
     # === VIDEO ===
     vid = load_video_frames(frame_folder).unsqueeze(0).to(DEVICE)
@@ -145,15 +164,15 @@ def predict_fusion_model(spectrogram_folder, frame_folder, transcript_text, base
     )
 
     # === TEXT ===
-    text_feat = fusion_model.tm(
-        [transcript_text]
-    )  # Use the text model from the fusion model
+    text_model = load_text_model()
+    text_feat = text_model([transcript_text])  # Pass as a list
 
     # === Predict ===
     with torch.no_grad():
-        logits = fusion_model(vid, aud, text_feat)
+        logits = model(vid, aud, text_feat)
         pred = torch.argmax(logits, dim=1).item()
-    pred_label = CLASS_NAMES[pred]
-    # Clean up to avoid cross-request state or memory hold
-    del fusion_model, vid, aud, text_feat, logits
-    return pred_label
+    return CLASS_NAMES[pred]
+
+
+# Initialize models on module import (optional, for warm start)
+load_fusion_model()
