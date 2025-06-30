@@ -2,6 +2,14 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DoctorDashboard from '../page'
 
+beforeEach(() => {
+  window.localStorage.setItem('doctorLoggedIn', 'true')
+})
+
+afterEach(() => {
+  window.localStorage.clear()
+})
+
 test('renders initial dashboard options', () => {
   render(<DoctorDashboard />)
   expect(screen.getByText(/Choose an Action/i)).toBeInTheDocument()

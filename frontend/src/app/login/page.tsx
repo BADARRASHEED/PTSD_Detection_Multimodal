@@ -60,6 +60,10 @@ export default function DoctorLogin() {
       setError(""); // Clear any previous errors
       console.log("Doctor Logged In:", data);
 
+      if (typeof window !== "undefined") {
+        localStorage.setItem("doctorLoggedIn", "true");
+      }
+
       // Redirect to doctor dashboard
       router.push("/doctor-dashboard");
     } catch (err: unknown) {

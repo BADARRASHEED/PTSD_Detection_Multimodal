@@ -65,6 +65,10 @@ export default function AdminLogin() {
       setError(""); // Clear any previous errors
       console.log("Admin Logged In:", formData);
 
+      if (typeof window !== "undefined") {
+        localStorage.setItem("adminLoggedIn", "true");
+      }
+
       // Redirect to admin dashboard
       router.push("/admin-dashboard");
     } else {
