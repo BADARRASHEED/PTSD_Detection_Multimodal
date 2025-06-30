@@ -3,11 +3,6 @@
 import * as React from "react";
 import Nav from "../components/nav";
 import Footer from "../components/footer";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Contact",
-};
 
 const Contact: React.FC = () => {
   return (
