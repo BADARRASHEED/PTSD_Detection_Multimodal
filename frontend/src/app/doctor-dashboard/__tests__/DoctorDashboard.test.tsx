@@ -4,10 +4,22 @@ import DoctorDashboard from '../page'
 
 beforeEach(() => {
   window.localStorage.setItem('doctorLoggedIn', 'true')
+  window.localStorage.setItem('doctorId', '1')
+  // @ts-expect-error - jsdom does not provide fetch
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      doc_name: 'Test Doc',
+      doc_speciality: 'Test Speciality',
+    }),
+  })
 })
 
 afterEach(() => {
   window.localStorage.clear()
+  jest.resetAllMocks()
+  // @ts-expect-error - cleanup mocked fetch
+  delete global.fetch
 })
 
 test('renders initial dashboard options', () => {
@@ -18,16 +30,23 @@ test('renders initial dashboard options', () => {
 })
 
 async function renderWithPrediction(prediction: string) {
-  const fetchMock = jest
-    .fn()
-    .mockResolvedValue({
+  const fetchMock = jest.fn().mockImplementation((input: RequestInfo) => {
+    if (typeof input === 'string' && input.includes('/predict')) {
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ prediction }),
+      } as Response)
+    }
+    return Promise.resolve({
       ok: true,
-      json: async () => ({ prediction }),
+      json: async () => ({ doc_name: 'Test Doc', doc_speciality: 'Test Speciality' }),
     } as Response)
+  })
   // @ts-expect-error - jsdom does not provide fetch
   global.fetch = fetchMock
 
   const { container } = render(<DoctorDashboard />)
+  const initialCalls = fetchMock.mock.calls.length
   userEvent.click(screen.getByRole('button', { name: /Upload Recorded File/i }))
 
   await waitFor(() => {
@@ -39,7 +58,12 @@ async function renderWithPrediction(prediction: string) {
 
   userEvent.click(screen.getByRole('button', { name: /Analyze PTSD/i }))
 
-  await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+  await waitFor(() =>
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(initialCalls)
+  )
+  await screen.findByText(
+    prediction === 'PTSD' ? /PTSD Detected/i : /No PTSD Detected/i
+  )
   // @ts-expect-error - cleanup mocked fetch
   delete global.fetch
 }

@@ -66,6 +66,9 @@ export default function DoctorLogin() {
         if (data.username) {
           localStorage.setItem("doctorUsername", data.username);
         }
+        if (data.doctor_id) {
+          localStorage.setItem("doctorId", data.doctor_id.toString());
+        }
       }
 
       // Redirect to doctor dashboard

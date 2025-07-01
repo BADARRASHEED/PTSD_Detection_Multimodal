@@ -22,8 +22,9 @@ export default function DoctorDashboard() {
   const chunks = useRef<Blob[]>([]);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [doctorName, setDoctorName] = useState("Dr. User");
+  const [doctorSpeciality, setDoctorSpeciality] = useState("");
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated and fetch doctor details
   useEffect(() => {
     if (typeof window !== "undefined") {
       const loggedIn = localStorage.getItem("doctorLoggedIn");
@@ -33,6 +34,22 @@ export default function DoctorDashboard() {
       const name = localStorage.getItem("doctorUsername");
       if (name) {
         setDoctorName(name);
+      }
+
+      const id = localStorage.getItem("doctorId");
+      if (id) {
+        fetch(`${BASE_URL}/doctors/${id}`)
+          .then(async (res) => {
+            if (!res.ok) throw new Error("Failed to fetch doctor");
+            return res.json();
+          })
+          .then((doc) => {
+            if (doc.doc_name) setDoctorName(doc.doc_name);
+            if (doc.doc_speciality) setDoctorSpeciality(doc.doc_speciality);
+          })
+          .catch(() => {
+            if (name) setDoctorName(name);
+          });
       }
     }
   }, [router]);
@@ -216,6 +233,7 @@ export default function DoctorDashboard() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("doctorLoggedIn");
       localStorage.removeItem("doctorUsername");
+      localStorage.removeItem("doctorId");
       window.location.href = "/login";
     }
   };
@@ -290,7 +308,7 @@ export default function DoctorDashboard() {
       <aside className="w-64 bg-teal-700 text-white flex flex-col">
         <div className="flex flex-col items-center mb-8 p-4 border-b border-teal-800">
           <h2 className="text-xl font-bold">Dr. {doctorName}</h2>
-          <p className="text-sm">Psychologist</p>
+          <p className="text-sm">{doctorSpeciality}</p>
         </div>
         <ul className="flex flex-col gap-2 px-4">
           <li>
