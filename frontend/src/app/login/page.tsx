@@ -2,15 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation"; // useRouter for navigation
-import type { Metadata } from "next";
 import Link from "next/link";
 import Nav from "../components/nav";
 import Footer from "../components/footer";
 import { BASE_URL } from "../utils/api";
 
-export const metadata: Metadata = {
-  title: "Doctor Login",
-};
 
 export default function DoctorLogin() {
   const router = useRouter(); // Initialize router for navigation
