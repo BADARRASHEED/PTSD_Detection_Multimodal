@@ -12,7 +12,7 @@ class Params:
         self.mel_bands = 64
         self.mel_min_hz = 125.0
         self.mel_max_hz = 7500.0
-        self.log_offset = 0.001
+        self.log_offset = 0.01
         self.patch_window_seconds = 27.96
         self.patch_hop_seconds = 15.0
         self.tflite_compatible = False
