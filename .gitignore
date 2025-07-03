@@ -8,14 +8,12 @@
 __pycache__/
 *.py[cod]
 
-# Database files
-*.db
+# Ignore all SQLite database files
+ptsd_db.sqlite
 
 # Ignore large model checkpoint files
 checkpoints/
 *.pth
 
-
-# Ignore Environment variables file
+# Ignore environment variables file
 .env
-
