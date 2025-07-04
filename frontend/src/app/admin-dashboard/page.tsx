@@ -193,6 +193,18 @@ export default function ManageDoctors() {
       doc_password: newDoctor.doc_password!,
     };
 
+    const duplicate = doctors.find(
+      (d) =>
+        d.doc_email === doctorData.doc_email ||
+        d.doc_username === doctorData.doc_username
+    );
+
+    if (duplicate) {
+      setErrorMessage("Doctor with given email or username already exists");
+      setShowErrorModal(true);
+      return;
+    }
+
     try {
       const response = await fetch(`${BASE_URL}/doctor/create`, {
         method: "POST",
@@ -207,7 +219,9 @@ export default function ManageDoctors() {
         try {
           const err = await response.json();
           if (err && err.detail) msg = err.detail;
-        } catch (e) {}
+        } catch (e) {
+          console.error(e);
+        }
         setErrorMessage(msg);
         setShowErrorModal(true);
         throw new Error(msg);
