@@ -44,6 +44,8 @@ export default function ManageDoctors() {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [adminName, setAdminName] = useState("Admin");
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Error state for form fields
   const [errors, setErrors] = useState<Partial<Record<keyof Doctor, string>>>(
@@ -149,6 +151,10 @@ export default function ManageDoctors() {
     }
   };
 
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
+  };
+
   {
     /* Function to open removal modal */
   }
@@ -196,7 +202,16 @@ export default function ManageDoctors() {
         body: JSON.stringify(doctorData),
       });
 
-      if (!response.ok) throw new Error("Failed to add doctor");
+      if (!response.ok) {
+        let msg = "Failed to add doctor";
+        try {
+          const err = await response.json();
+          if (err && err.detail) msg = err.detail;
+        } catch (e) {}
+        setErrorMessage(msg);
+        setShowErrorModal(true);
+        throw new Error(msg);
+      }
 
       const data = await response.json();
       setDoctors([...doctors, data]); // Add newly created doctor to list
@@ -204,6 +219,10 @@ export default function ManageDoctors() {
       console.log("Doctor added successfully:", data);
     } catch (error) {
       console.error("Error adding doctor:", error);
+      if (!showErrorModal) {
+        setErrorMessage("Failed to add doctor");
+        setShowErrorModal(true);
+      }
     }
   };
 
@@ -686,6 +705,23 @@ export default function ManageDoctors() {
                 className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow-md">
+            <h2 className="text-lg font-semibold mb-4">{errorMessage}</h2>
+            <div className="flex justify-end">
+              <button
+                onClick={handleCloseErrorModal}
+                className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-800"
+              >
+                Close
               </button>
             </div>
           </div>
