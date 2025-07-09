@@ -17,3 +17,6 @@ checkpoints/
 
 # Ignore environment variables file
 .env
+
+# Ignore desktop.ini files
+*.ini
