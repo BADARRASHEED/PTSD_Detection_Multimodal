@@ -95,7 +95,8 @@ During prediction, the `process_video` function writes intermediate files to
 `temp/audio`, `temp/frames`, `temp/spectrogram_patches`, and `temp/transcripts`.
 At the start of each run these directories are deleted with
 `shutil.rmtree(..., ignore_errors=True)` and then recreated using
-`os.makedirs` to ensure a clean workspace.
+`os.makedirs` to ensure a clean workspace. When processing finishes the
+entire `temp` directory is removed to free up disk space.
 
 ## Customizing the Favicon
 
