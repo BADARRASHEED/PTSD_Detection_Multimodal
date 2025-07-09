@@ -129,7 +129,10 @@ async def predict_ptsd(video: UploadFile = File(...)):
             os.remove(video_path)
         for d in subdirs:
             shutil.rmtree(d, ignore_errors=True)
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        # Retain the top-level temp directory so that uvicorn's reload
+        # mechanism does not fail when the folder disappears between
+        # reload checks.
+        # shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 """
