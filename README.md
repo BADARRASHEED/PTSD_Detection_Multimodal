@@ -95,8 +95,10 @@ During prediction, the `process_video` function writes intermediate files to
 `temp/audio`, `temp/frames`, `temp/spectrogram_patches`, and `temp/transcripts`.
 At the start of each run these directories are deleted with
 `shutil.rmtree(..., ignore_errors=True)` and then recreated using
-`os.makedirs` to ensure a clean workspace. When processing finishes the
-entire `temp` directory is removed to free up disk space.
+`os.makedirs` to ensure a clean workspace. A unique subfolder is created for
+each video and removed after inference completes, but the top-level `temp`
+directory is kept so hot-reload servers such as Uvicorn do not crash when the
+folder temporarily disappears.
 
 ## Customizing the Favicon
 
