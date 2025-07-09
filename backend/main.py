@@ -129,6 +129,7 @@ async def predict_ptsd(video: UploadFile = File(...)):
             os.remove(video_path)
         for d in subdirs:
             shutil.rmtree(d, ignore_errors=True)
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 """
