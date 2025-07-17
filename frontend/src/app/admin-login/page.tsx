@@ -19,7 +19,7 @@ export default function AdminLogin() {
 
   // Default admin credentials
   const defaultAdmin = {
-    username: "admin",
+    username: "Badar",
     password: "12345",
   };
 

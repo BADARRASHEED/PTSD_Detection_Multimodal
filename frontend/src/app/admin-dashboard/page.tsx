@@ -373,7 +373,7 @@ export default function ManageDoctors() {
       <aside className="w-64 bg-teal-700 text-white flex flex-col">
         <div className="flex flex-col items-center mb-8 p-4 border-b border-teal-800">
           <Image
-            src="/doc3.jpg"
+            src="/badar.jpg"
             width={500}
             height={300}
             alt="Doctor Profile"
