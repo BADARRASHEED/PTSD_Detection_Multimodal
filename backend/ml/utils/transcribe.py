@@ -50,7 +50,7 @@ def transcribe_and_save(audio_path: str, save_dir: str) -> str:
         msg = str(e).lower()
         if isinstance(e, FileNotFoundError) or "ffmpeg" in msg or "ffprobe" in msg:
             print("FFmpeg not found – please install FFmpeg and ensure it’s on your PATH.")
-        print(f"❌ Error transcribing {audio_path}: {e}")
+        print(f"Error transcribing {audio_path}: {e}")
         raise
 
 

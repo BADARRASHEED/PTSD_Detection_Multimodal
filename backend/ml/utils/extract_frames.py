@@ -1,7 +1,7 @@
 import cv2
 import os
 from mtcnn.mtcnn import MTCNN
-from typing import List  # ✅ Use typing.List for return type annotation
+from typing import List  # Use typing.List for return type annotation
 
 
 def extract_faces_from_video(
@@ -10,7 +10,7 @@ def extract_faces_from_video(
     frame_interval: float = 0.5,
     max_frames: int = 120,
     resize_to: tuple = (224, 224),
-) -> List[str]:  # ✅ FIXED RETURN TYPE
+) -> List[str]:  # FIXED RETURN TYPE
     """
     Extract face frames from a video using MTCNN and save them resized to 224x224.
 
@@ -30,7 +30,7 @@ def extract_faces_from_video(
     saved_paths = []
 
     if not cap.isOpened():
-        raise IOError(f"❌ Cannot open video: {video_path}")
+        raise IOError(f"Cannot open video: {video_path}")
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_count = 0

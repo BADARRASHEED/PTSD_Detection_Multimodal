@@ -151,21 +151,4 @@ process_audio_file(
     output_dir="temp/spectrogram_patches"
 )
 
-
-== Simple Visualization (like sliding window) ==
-
-Audio:      |--------------------------- 60 seconds ----------------------------|
-
-Patch 1:    |--------- 27.96s ---------|
-Patch 2:             |--------- 27.96s ---------|
-Patch 3:                       |--------- 27.96s ---------|
-
-
-
-- Patch 1 starts at 0s → goes till ~28s
-
-- Patch 2 starts at 15s → goes till ~43s
-
-- Patch 3 starts at 30s → goes till ~58s
-
 """

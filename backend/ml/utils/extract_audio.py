@@ -48,7 +48,7 @@ def extract_audio_from_video(video_path: str, output_folder: str) -> str:
         return audio_path
 
     except Exception as e:
-        print(f"❌ Error extracting audio from {video_path}: {e}")
+        print(f"Error extracting audio from {video_path}: {e}")
         raise
 
 
